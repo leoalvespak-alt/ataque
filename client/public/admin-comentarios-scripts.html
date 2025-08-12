@@ -1,0 +1,422 @@
+<script>
+    // Estado da aplicação
+    let comentarios = [];
+    let comentariosPagina = 1;
+    let comentariosTotal = 0;
+    let comentarioSelecionado = null;
+    let acaoAtual = null; // 'aprovar', 'rejeitar', 'responder'
+
+    // Verificar autenticação
+    function verificarAuth() {
+        const token = localStorage.getItem('token');
+        const userType = localStorage.getItem('userType');
+        
+        if (!token || userType !== 'gestor') {
+            window.location.href = 'login.html';
+            return false;
+        }
+        return true;
+    }
+
+    // Carregar estatísticas
+    async function carregarEstatisticas() {
+        try {
+            const token = localStorage.getItem('token');
+            
+            // Carregar estatísticas dos comentários
+            const response = await fetch('http://localhost:3002/api/admin/comentarios?limit=1', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Calcular estatísticas
+                const total = data.total;
+                const aprovados = comentarios.filter(c => c.aprovado).length;
+                const pendentes = comentarios.filter(c => !c.aprovado).length;
+                const respondidos = comentarios.filter(c => c.respondido).length;
+                
+                document.getElementById('totalComentarios').textContent = total;
+                document.getElementById('comentariosPendentes').textContent = pendentes;
+                document.getElementById('comentariosAprovados').textContent = aprovados;
+                document.getElementById('comentariosRespondidos').textContent = respondidos;
+            }
+        } catch (error) {
+            console.error('Erro ao carregar estatísticas:', error);
+        }
+    }
+
+    // Carregar comentários
+    async function carregarComentarios() {
+        if (!verificarAuth()) return;
+        
+        try {
+            const token = localStorage.getItem('token');
+            const status = document.getElementById('filtroStatus').value;
+            const tipo = document.getElementById('filtroTipo').value;
+            
+            let url = `http://localhost:3002/api/admin/comentarios?page=${comentariosPagina}&limit=10`;
+            if (status) url += `&status=${status}`;
+            if (tipo) url += `&tipo=${tipo}`;
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) throw new Error('Erro ao carregar comentários');
+            
+            const data = await response.json();
+            comentarios = data.comentarios || [];
+            comentariosTotal = data.total;
+            
+            renderizarComentarios();
+            renderizarPaginacao();
+            carregarEstatisticas();
+            
+        } catch (error) {
+            console.error('Erro ao carregar comentários:', error);
+            document.getElementById('comentariosList').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Erro ao carregar comentários. Tente novamente.
+                </div>
+            `;
+        }
+    }
+
+    // Renderizar lista de comentários
+    function renderizarComentarios() {
+        const container = document.getElementById('comentariosList');
+        
+        if (comentarios.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-chat-dots"></i>
+                    <h4>Nenhum comentário encontrado</h4>
+                    <p>Não há comentários que correspondam aos filtros selecionados.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = comentarios.map(comentario => `
+            <div class="comentario-item">
+                <div class="comentario-header">
+                    <div class="comentario-info">
+                        <div class="comentario-usuario">
+                            <i class="bi bi-person-circle"></i>
+                            ${comentario.usuario.nome} (${comentario.usuario.email})
+                        </div>
+                        <div class="comentario-meta">
+                            <i class="bi bi-calendar"></i>
+                            ${new Date(comentario.data_criacao).toLocaleDateString('pt-BR')} às 
+                            ${new Date(comentario.data_criacao).toLocaleTimeString('pt-BR')}
+                            ${comentario.likes > 0 ? ` • <i class="bi bi-hand-thumbs-up"></i> ${comentario.likes} likes` : ''}
+                        </div>
+                    </div>
+                    <span class="comentario-tipo ${comentario.tipo.toLowerCase()}">${comentario.tipo}</span>
+                </div>
+                
+                <div class="comentario-questao">
+                    <strong>Questão #${comentario.questao.id}:</strong>
+                    ${comentario.questao.enunciado.substring(0, 100)}${comentario.questao.enunciado.length > 100 ? '...' : ''}
+                </div>
+                
+                <div class="comentario-texto">
+                    ${comentario.texto}
+                </div>
+                
+                ${comentario.resposta_admin ? `
+                    <div class="alert alert-info">
+                        <strong><i class="bi bi-reply"></i> Resposta do Administrador:</strong><br>
+                        ${comentario.resposta_admin}
+                        <small class="d-block mt-2">
+                            ${new Date(comentario.data_resposta).toLocaleDateString('pt-BR')} às 
+                            ${new Date(comentario.data_resposta).toLocaleTimeString('pt-BR')}
+                        </small>
+                    </div>
+                ` : ''}
+                
+                <div class="comentario-actions">
+                    ${!comentario.aprovado ? `
+                        <button class="btn btn-success btn-sm" onclick="abrirModalAcao(${comentario.id}, 'aprovar')">
+                            <i class="bi bi-check-circle"></i> Aprovar
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="abrirModalAcao(${comentario.id}, 'rejeitar')">
+                            <i class="bi bi-x-circle"></i> Rejeitar
+                        </button>
+                    ` : ''}
+                    
+                    ${comentario.aprovado && !comentario.respondido ? `
+                        <button class="btn btn-warning btn-sm" onclick="abrirModalResponder(${comentario.id})">
+                            <i class="bi bi-reply"></i> Responder
+                        </button>
+                    ` : ''}
+                    
+                    <button class="btn btn-outline-danger btn-sm" onclick="excluirComentario(${comentario.id})">
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Renderizar paginação
+    function renderizarPaginacao() {
+        const container = document.getElementById('paginacao');
+        const totalPages = Math.ceil(comentariosTotal / 10);
+        
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        let paginacao = '';
+        
+        // Botão anterior
+        if (comentariosPagina > 1) {
+            paginacao += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="mudarPagina(${comentariosPagina - 1})">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+            `;
+        }
+        
+        // Páginas
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= comentariosPagina - 2 && i <= comentariosPagina + 2)) {
+                paginacao += `
+                    <li class="page-item ${i === comentariosPagina ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="mudarPagina(${i})">${i}</a>
+                    </li>
+                `;
+            } else if (i === comentariosPagina - 3 || i === comentariosPagina + 3) {
+                paginacao += `
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                `;
+            }
+        }
+        
+        // Botão próximo
+        if (comentariosPagina < totalPages) {
+            paginacao += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="mudarPagina(${comentariosPagina + 1})">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+        }
+        
+        container.innerHTML = paginacao;
+    }
+
+    // Mudar página
+    function mudarPagina(pagina) {
+        comentariosPagina = pagina;
+        carregarComentarios();
+    }
+
+    // Filtrar comentários
+    function filtrarComentarios() {
+        comentariosPagina = 1;
+        carregarComentarios();
+    }
+
+    // Abrir modal de ação (aprovar/rejeitar)
+    function abrirModalAcao(comentarioId, acao) {
+        comentarioSelecionado = comentarios.find(c => c.id === comentarioId);
+        acaoAtual = acao;
+        
+        const modal = new bootstrap.Modal(document.getElementById('modalAcao'));
+        const titulo = document.getElementById('modalAcaoTitulo');
+        const info = document.getElementById('modalComentarioInfo');
+        const btnConfirmar = document.getElementById('btnConfirmarAcao');
+        
+        titulo.textContent = acao === 'aprovar' ? 'Aprovar Comentário' : 'Rejeitar Comentário';
+        btnConfirmar.className = acao === 'aprovar' ? 'btn btn-success' : 'btn btn-danger';
+        btnConfirmar.innerHTML = acao === 'aprovar' ? 
+            '<i class="bi bi-check-circle"></i> Aprovar' : 
+            '<i class="bi bi-x-circle"></i> Rejeitar';
+        
+        info.innerHTML = `
+            <div class="alert alert-info">
+                <strong>Usuário:</strong> ${comentarioSelecionado.usuario.nome}<br>
+                <strong>Tipo:</strong> ${comentarioSelecionado.tipo}<br>
+                <strong>Data:</strong> ${new Date(comentarioSelecionado.data_criacao).toLocaleDateString('pt-BR')}<br>
+                <strong>Comentário:</strong><br>
+                <em>"${comentarioSelecionado.texto}"</em>
+            </div>
+        `;
+        
+        document.getElementById('modalResposta').value = '';
+        modal.show();
+    }
+
+    // Abrir modal de resposta
+    function abrirModalResponder(comentarioId) {
+        comentarioSelecionado = comentarios.find(c => c.id === comentarioId);
+        acaoAtual = 'responder';
+        
+        const modal = new bootstrap.Modal(document.getElementById('modalResponder'));
+        const info = document.getElementById('modalResponderComentarioInfo');
+        
+        info.innerHTML = `
+            <div class="alert alert-info">
+                <strong>Usuário:</strong> ${comentarioSelecionado.usuario.nome}<br>
+                <strong>Tipo:</strong> ${comentarioSelecionado.tipo}<br>
+                <strong>Data:</strong> ${new Date(comentarioSelecionado.data_criacao).toLocaleDateString('pt-BR')}<br>
+                <strong>Comentário:</strong><br>
+                <em>"${comentarioSelecionado.texto}"</em>
+            </div>
+        `;
+        
+        document.getElementById('modalRespostaTexto').value = '';
+        modal.show();
+    }
+
+    // Confirmar ação (aprovar/rejeitar)
+    document.getElementById('btnConfirmarAcao').addEventListener('click', async function() {
+        if (!comentarioSelecionado) return;
+        
+        try {
+            const token = localStorage.getItem('token');
+            const resposta = document.getElementById('modalResposta').value.trim();
+            
+            let url = `http://localhost:3002/api/admin/comentarios/${comentarioSelecionado.id}`;
+            let method = 'PUT';
+            let body = {};
+            
+            if (acaoAtual === 'aprovar') {
+                url += '/aprovar';
+                body.resposta_admin = resposta || null;
+            } else if (acaoAtual === 'rejeitar') {
+                url += '/rejeitar';
+                body.motivo = resposta || 'Comentário rejeitado pelo administrador';
+            }
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Erro ao processar ação');
+            }
+            
+            const result = await response.json();
+            alert(result.message);
+            
+            // Fechar modal e recarregar
+            bootstrap.Modal.getInstance(document.getElementById('modalAcao')).hide();
+            await carregarComentarios();
+            
+        } catch (error) {
+            console.error('Erro ao processar ação:', error);
+            alert('Erro ao processar ação: ' + error.message);
+        }
+    });
+
+    // Enviar resposta
+    async function enviarResposta() {
+        if (!comentarioSelecionado) return;
+        
+        const resposta = document.getElementById('modalRespostaTexto').value.trim();
+        if (!resposta) {
+            alert('Por favor, digite uma resposta.');
+            return;
+        }
+        
+        try {
+            const token = localStorage.getItem('token');
+            
+            const response = await fetch(`http://localhost:3002/api/admin/comentarios/${comentarioSelecionado.id}/responder`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    resposta_admin: resposta
+                })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Erro ao enviar resposta');
+            }
+            
+            const result = await response.json();
+            alert(result.message);
+            
+            // Fechar modal e recarregar
+            bootstrap.Modal.getInstance(document.getElementById('modalResponder')).hide();
+            await carregarComentarios();
+            
+        } catch (error) {
+            console.error('Erro ao enviar resposta:', error);
+            alert('Erro ao enviar resposta: ' + error.message);
+        }
+    }
+
+    // Excluir comentário
+    async function excluirComentario(comentarioId) {
+        if (!confirm('Tem certeza que deseja excluir este comentário? Esta ação não pode ser desfeita.')) {
+            return;
+        }
+        
+        try {
+            const token = localStorage.getItem('token');
+            
+            const response = await fetch(`http://localhost:3002/api/admin/comentarios/${comentarioId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Erro ao excluir comentário');
+            }
+            
+            const result = await response.json();
+            alert(result.message);
+            
+            await carregarComentarios();
+            
+        } catch (error) {
+            console.error('Erro ao excluir comentário:', error);
+            alert('Erro ao excluir comentário: ' + error.message);
+        }
+    }
+
+    // Função para sair
+    function sair() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userType');
+        localStorage.removeItem('userName');
+        window.location.href = 'login.html';
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+        if (verificarAuth()) {
+            carregarComentarios();
+        }
+    });
+</script>

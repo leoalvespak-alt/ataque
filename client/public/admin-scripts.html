@@ -1,0 +1,1167 @@
+// Variáveis globais para modais Bootstrap
+let modalQuestao, modalCategoria, modalPlano, modalUsuario;
+
+// Função para fazer requisições autenticadas
+async function fetchAuthenticated(url, options = {}) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    };
+
+    const finalOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers
+        }
+    };
+
+    return fetch(url, finalOptions);
+}
+
+// Função para mostrar alertas
+function mostrarAlerta(mensagem, tipo = 'success') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${mensagem}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-remover após 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Função para formatar data
+function formatarData(data) {
+    return new Date(data).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
+
+// Função para formatar moeda
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    }).format(valor);
+}
+
+// Função para testar autenticação
+async function testarAutenticacao() {
+    try {
+        console.log('Testando autenticação...');
+        const token = localStorage.getItem('token');
+        console.log('Token:', token ? 'Presente' : 'Ausente');
+        
+        if (!token) {
+            console.error('Token não encontrado');
+            return;
+        }
+        
+        const response = await fetch('http://localhost:3002/api/auth/verify', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        console.log('Status da verificação:', response.status);
+        const data = await response.json();
+        console.log('Dados da verificação:', data);
+        
+    } catch (error) {
+        console.error('Erro no teste de autenticação:', error);
+    }
+}
+
+// Funções do Dashboard
+async function carregarDashboard() {
+    try {
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/dashboard');
+        if (!response.ok) throw new Error('Erro ao carregar dados do dashboard');
+        
+        const data = await response.json();
+        
+        // Atualizar cards com dados da API
+        document.getElementById('totalQuestoes').textContent = data.stats.totalQuestoes || 0;
+        document.getElementById('totalUsuarios').textContent = data.stats.totalUsuarios || 0;
+        document.getElementById('respostasHoje').textContent = data.stats.totalRespostas || 0;
+        document.getElementById('mediaXP').textContent = Math.round(data.stats.mediaXP || 0);
+
+        // Atualizar estatísticas de categorias
+        let categoriasHTML = '<ul class="list-group">';
+        categoriasHTML += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Disciplinas
+                <span class="badge bg-primary rounded-pill">${data.stats.totalDisciplinas || 0}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Assuntos
+                <span class="badge bg-primary rounded-pill">${data.stats.totalAssuntos || 0}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Bancas
+                <span class="badge bg-primary rounded-pill">${data.stats.totalBancas || 0}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Órgãos
+                <span class="badge bg-primary rounded-pill">${data.stats.totalOrgaos || 0}</span>
+            </li>`;
+        categoriasHTML += '</ul>';
+        document.getElementById('questoesPorDisciplina').innerHTML = categoriasHTML;
+
+        // Atualizar estatísticas de usuários
+        let usuariosHTML = '<ul class="list-group">';
+        usuariosHTML += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Usuários Gratuitos
+                <span class="badge bg-success rounded-pill">${data.stats.usuariosGratuitos || 0}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Usuários Premium
+                <span class="badge bg-warning rounded-pill">${data.stats.usuariosPremium || 0}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Assinaturas Ativas
+                <span class="badge bg-info rounded-pill">${data.stats.assinaturasAtivas || 0}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Comentários Pendentes
+                <span class="badge bg-danger rounded-pill">${data.stats.comentariosPendentes || 0}</span>
+            </li>`;
+        usuariosHTML += '</ul>';
+        document.getElementById('usuariosPorPlano').innerHTML = usuariosHTML;
+
+    } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+        mostrarAlerta('Erro ao carregar dados do dashboard. Por favor, tente novamente.', 'danger');
+    }
+}
+
+// Funções de Questões
+async function carregarQuestoes() {
+    try {
+        console.log('Tentando carregar questões...');
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/questoes');
+        console.log('Resposta do servidor:', response);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro na resposta:', errorText);
+            throw new Error('Erro ao carregar questões');
+        }
+        
+        const data = await response.json();
+        console.log('Dados recebidos:', data);
+        const questoes = data.questoes || [];
+        
+        let html = '';
+        for (const questao of questoes) {
+            html += `
+                <tr>
+                    <td>${questao.id}</td>
+                    <td>${questao.disciplina.nome}</td>
+                    <td>${questao.assunto.nome}</td>
+                    <td>${questao.banca.nome}</td>
+                    <td>${questao.ano}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editarQuestao(${questao.id})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="excluirQuestao(${questao.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }
+        
+        document.getElementById('tabelaQuestoes').innerHTML = html || '<tr><td colspan="6">Nenhuma questão encontrada</td></tr>';
+    } catch (error) {
+        console.error('Erro ao carregar questões:', error);
+        mostrarAlerta('Erro ao carregar questões. Por favor, tente novamente.', 'danger');
+    }
+}
+
+async function carregarDadosQuestao(id) {
+    try {
+        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/questoes/${id}`);
+        if (!response.ok) throw new Error('Erro ao carregar dados da questão');
+        
+        const questao = await response.json();
+        
+        // Preencher formulário
+        document.getElementById('questaoId').value = questao.id;
+        document.getElementById('disciplina').value = questao.disciplina_id;
+        await carregarAssuntos(); // Recarrega assuntos da disciplina selecionada
+        document.getElementById('assunto').value = questao.assunto_id;
+        document.getElementById('banca').value = questao.banca_id;
+        document.getElementById('orgao').value = questao.orgao_id;
+        document.getElementById('ano').value = questao.ano;
+        document.getElementById('enunciado').value = questao.enunciado;
+        document.getElementById('alternativaA').value = questao.alternativas.A;
+        document.getElementById('alternativaB').value = questao.alternativas.B;
+        document.getElementById('alternativaC').value = questao.alternativas.C;
+        document.getElementById('alternativaD').value = questao.alternativas.D;
+        document.getElementById('alternativaE').value = questao.alternativas.E;
+        document.getElementById('gabarito').value = questao.gabarito;
+        document.getElementById('comentarioProfessor').value = questao.comentario_professor;
+        
+        document.getElementById('modalQuestaoTitulo').textContent = `Editar Questão #${questao.id}`;
+        modalQuestao.show();
+    } catch (error) {
+        console.error('Erro ao carregar dados da questão:', error);
+        mostrarAlerta('Erro ao carregar dados da questão. Por favor, tente novamente.', 'danger');
+    }
+}
+
+async function abrirModalNovaQuestao() {
+    document.getElementById('questaoId').value = '';
+    document.getElementById('formQuestao').reset();
+    document.getElementById('modalQuestaoTitulo').textContent = 'Nova Questão';
+    
+    // Carregar categorias antes de mostrar o modal
+    await carregarCategoriasParaQuestao();
+    
+    modalQuestao.show();
+}
+
+async function salvarQuestao() {
+    try {
+        const id = document.getElementById('questaoId').value;
+        const questao = {
+            disciplina_id: document.getElementById('disciplina').value,
+            assunto_id: document.getElementById('assunto').value,
+            banca_id: document.getElementById('banca').value,
+            orgao_id: document.getElementById('orgao').value,
+            ano: document.getElementById('ano').value,
+            enunciado: document.getElementById('enunciado').value,
+            alternativas: {
+                A: document.getElementById('alternativaA').value,
+                B: document.getElementById('alternativaB').value,
+                C: document.getElementById('alternativaC').value,
+                D: document.getElementById('alternativaD').value,
+                E: document.getElementById('alternativaE').value
+            },
+            gabarito: document.getElementById('gabarito').value,
+            comentario_professor: document.getElementById('comentarioProfessor').value
+        };
+
+        const url = id 
+            ? `http://localhost:3002/api/admin/questoes/${id}`
+            : 'http://localhost:3002/api/admin/questoes';
+        
+        const response = await fetchAuthenticated(url, {
+            method: id ? 'PUT' : 'POST',
+            body: JSON.stringify(questao)
+        });
+
+        if (!response.ok) throw new Error('Erro ao salvar questão');
+        
+        modalQuestao.hide();
+        mostrarAlerta(id ? 'Questão atualizada com sucesso!' : 'Questão criada com sucesso!');
+        carregarQuestoes();
+    } catch (error) {
+        console.error('Erro ao salvar questão:', error);
+        mostrarAlerta('Erro ao salvar questão. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+async function excluirQuestao(id) {
+    if (!confirm('Tem certeza que deseja excluir esta questão?')) return;
+    
+    try {
+        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/questoes/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Erro ao excluir questão');
+        
+        mostrarAlerta('Questão excluída com sucesso!');
+        carregarQuestoes();
+    } catch (error) {
+        console.error('Erro ao excluir questão:', error);
+        mostrarAlerta('Erro ao excluir questão. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+function editarQuestao(id) {
+    carregarDadosQuestao(id);
+}
+
+// Funções de Categorias
+async function carregarDisciplinas() {
+    try {
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/disciplinas');
+        if (!response.ok) throw new Error('Erro ao carregar disciplinas');
+        
+        const data = await response.json();
+        const disciplinas = data.disciplinas || [];
+        
+        // Atualizar tabela
+        let html = '';
+        for (const disciplina of disciplinas) {
+            html += `
+                <tr>
+                    <td>${disciplina.id}</td>
+                    <td>${disciplina.nome}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editarCategoria('disciplina', ${disciplina.id}, '${disciplina.nome}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="excluirCategoria('disciplina', ${disciplina.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }
+        
+        document.getElementById('tabelaDisciplinas').innerHTML = html || '<tr><td colspan="3">Nenhuma disciplina encontrada</td></tr>';
+        
+        // Atualizar selects
+        const selects = ['disciplina', 'disciplinaPai'];
+        for (const selectId of selects) {
+            const select = document.getElementById(selectId);
+            if (!select) continue;
+            
+            select.innerHTML = '<option value="">Selecione...</option>';
+            for (const disciplina of disciplinas) {
+                select.innerHTML += `<option value="${disciplina.id}">${disciplina.nome}</option>`;
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar disciplinas:', error);
+        mostrarAlerta('Erro ao carregar disciplinas. Por favor, tente novamente.', 'danger');
+    }
+}
+
+async function carregarAssuntos() {
+    try {
+        console.log('Tentando carregar assuntos...');
+        const disciplinaId = document.getElementById('disciplina').value;
+        const url = disciplinaId 
+            ? `http://localhost:3002/api/admin/assuntos?disciplina=${disciplinaId}`
+            : 'http://localhost:3002/api/admin/assuntos';
+            
+        console.log('URL para carregar assuntos:', url);
+        const response = await fetchAuthenticated(url);
+        console.log('Resposta do servidor para assuntos:', response);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro na resposta de assuntos:', errorText);
+            throw new Error('Erro ao carregar assuntos');
+        }
+        
+        const data = await response.json();
+        const assuntos = data.assuntos || [];
+        
+        // Atualizar tabela se estiver na seção de assuntos
+        if (document.getElementById('assuntos').style.display !== 'none') {
+            let html = '';
+            for (const assunto of assuntos) {
+                html += `
+                    <tr>
+                        <td>${assunto.id}</td>
+                        <td>${assunto.nome}</td>
+                        <td>${assunto.disciplina.nome}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editarCategoria('assunto', ${assunto.id}, '${assunto.nome}', ${assunto.disciplina_id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirCategoria('assunto', ${assunto.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            }
+            
+            document.getElementById('tabelaAssuntos').innerHTML = html || '<tr><td colspan="4">Nenhum assunto encontrado</td></tr>';
+        }
+        
+        // Atualizar select de assuntos
+        const select = document.getElementById('assunto');
+        if (select) {
+            select.innerHTML = '<option value="">Selecione...</option>';
+            for (const assunto of assuntos) {
+                select.innerHTML += `<option value="${assunto.id}">${assunto.nome}</option>`;
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar assuntos:', error);
+        mostrarAlerta('Erro ao carregar assuntos. Por favor, tente novamente.', 'danger');
+    }
+}
+
+async function carregarBancas() {
+    try {
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/bancas');
+        if (!response.ok) throw new Error('Erro ao carregar bancas');
+        
+        const data = await response.json();
+        const bancas = data.bancas || [];
+        
+        // Atualizar tabela
+        let html = '';
+        for (const banca of bancas) {
+            html += `
+                <tr>
+                    <td>${banca.id}</td>
+                    <td>${banca.nome}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editarCategoria('banca', ${banca.id}, '${banca.nome}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="excluirCategoria('banca', ${banca.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }
+        
+        document.getElementById('tabelaBancas').innerHTML = html || '<tr><td colspan="3">Nenhuma banca encontrada</td></tr>';
+        
+        // Atualizar select
+        const select = document.getElementById('banca');
+        if (select) {
+            select.innerHTML = '<option value="">Selecione...</option>';
+            for (const banca of bancas) {
+                select.innerHTML += `<option value="${banca.id}">${banca.nome}</option>`;
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar bancas:', error);
+        mostrarAlerta('Erro ao carregar bancas. Por favor, tente novamente.', 'danger');
+    }
+}
+
+async function carregarOrgaos() {
+    try {
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/orgaos');
+        if (!response.ok) throw new Error('Erro ao carregar órgãos');
+        
+        const data = await response.json();
+        const orgaos = data.orgaos || [];
+        
+        // Atualizar tabela
+        let html = '';
+        for (const orgao of orgaos) {
+            html += `
+                <tr>
+                    <td>${orgao.id}</td>
+                    <td>${orgao.nome}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editarCategoria('orgao', ${orgao.id}, '${orgao.nome}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="excluirCategoria('orgao', ${orgao.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }
+        
+        document.getElementById('tabelaOrgaos').innerHTML = html || '<tr><td colspan="3">Nenhum órgão encontrado</td></tr>';
+        
+        // Atualizar select
+        const select = document.getElementById('orgao');
+        if (select) {
+            select.innerHTML = '<option value="">Selecione...</option>';
+            for (const orgao of orgaos) {
+                select.innerHTML += `<option value="${orgao.id}">${orgao.nome}</option>`;
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar órgãos:', error);
+        mostrarAlerta('Erro ao carregar órgãos. Por favor, tente novamente.', 'danger');
+    }
+}
+
+function abrirModalNovaCategoria(tipo) {
+    document.getElementById('categoriaId').value = '';
+    document.getElementById('formCategoria').reset();
+    document.getElementById('categoriaTipo').value = tipo;
+    document.getElementById('modalCategoriaTitulo').textContent = `Nova ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+    
+    // Mostrar/ocultar campo de disciplina pai para assuntos
+    document.getElementById('disciplinaPaiContainer').style.display = tipo === 'assunto' ? 'block' : 'none';
+    
+    modalCategoria.show();
+}
+
+function editarCategoria(tipo, id, nome, disciplinaId = null) {
+    document.getElementById('categoriaId').value = id;
+    document.getElementById('categoriaNome').value = nome;
+    document.getElementById('categoriaTipo').value = tipo;
+    document.getElementById('modalCategoriaTitulo').textContent = `Editar ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+    
+    // Configurar campo de disciplina pai para assuntos
+    const disciplinaPaiContainer = document.getElementById('disciplinaPaiContainer');
+    if (tipo === 'assunto') {
+        disciplinaPaiContainer.style.display = 'block';
+        document.getElementById('disciplinaPai').value = disciplinaId || '';
+    } else {
+        disciplinaPaiContainer.style.display = 'none';
+    }
+    
+    modalCategoria.show();
+}
+
+async function salvarCategoria() {
+    try {
+        const id = document.getElementById('categoriaId').value;
+        const tipo = document.getElementById('categoriaTipo').value;
+        const nome = document.getElementById('categoriaNome').value;
+        const disciplinaId = tipo === 'assunto' ? document.getElementById('disciplinaPai').value : null;
+        
+        const dados = {
+            nome,
+            ...(disciplinaId && { disciplina_id: disciplinaId })
+        };
+        
+        const url = id 
+            ? `http://localhost:3002/api/admin/${tipo}s/${id}`
+            : `http://localhost:3002/api/admin/${tipo}s`;
+            
+        const response = await fetchAuthenticated(url, {
+            method: id ? 'PUT' : 'POST',
+            body: JSON.stringify(dados)
+        });
+
+        if (!response.ok) throw new Error(`Erro ao salvar ${tipo}`);
+        
+        modalCategoria.hide();
+        mostrarAlerta(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} ${id ? 'atualizada' : 'criada'} com sucesso!`);
+        
+        // Recarregar dados
+        switch (tipo) {
+            case 'disciplina':
+                carregarDisciplinas();
+                break;
+            case 'assunto':
+                carregarAssuntos();
+                break;
+            case 'banca':
+                carregarBancas();
+                break;
+            case 'orgao':
+                carregarOrgaos();
+                break;
+        }
+    } catch (error) {
+        console.error(`Erro ao salvar ${tipo}:`, error);
+        mostrarAlerta(`Erro ao salvar ${tipo}. Por favor, verifique sua conexão.`, 'danger');
+    }
+}
+
+async function excluirCategoria(tipo, id) {
+    if (!confirm(`Tem certeza que deseja excluir esta ${tipo}?`)) return;
+    
+    try {
+        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/${tipo}s/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error(`Erro ao excluir ${tipo}`);
+        
+        mostrarAlerta(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} excluída com sucesso!`);
+        
+        // Recarregar dados
+        switch (tipo) {
+            case 'disciplina':
+                carregarDisciplinas();
+                break;
+            case 'assunto':
+                carregarAssuntos();
+                break;
+            case 'banca':
+                carregarBancas();
+                break;
+            case 'orgao':
+                carregarOrgaos();
+                break;
+        }
+    } catch (error) {
+        console.error(`Erro ao excluir ${tipo}:`, error);
+        mostrarAlerta(`Erro ao excluir ${tipo}. Por favor, verifique sua conexão.`, 'danger');
+    }
+}
+
+// Funções de Usuários
+async function carregarUsuarios() {
+    try {
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/usuarios');
+        if (!response.ok) throw new Error('Erro ao carregar usuários');
+        
+        const usuarios = await response.json();
+        
+        let html = '';
+        for (const usuario of usuarios) {
+            html += `
+                <tr>
+                    <td>${usuario.id}</td>
+                    <td>${usuario.nome}</td>
+                    <td>${usuario.email}</td>
+                    <td>${usuario.plano ? usuario.plano.nome : 'Gratuito'}</td>
+                    <td>
+                        <span class="badge ${usuario.status === 'ativo' ? 'bg-success' : 'bg-danger'}">
+                            ${usuario.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editarUsuario(${usuario.id})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="alternarStatusUsuario(${usuario.id}, '${usuario.status === 'ativo' ? 'suspenso' : 'ativo'}')">
+                            <i class="bi bi-${usuario.status === 'ativo' ? 'pause' : 'play'}"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }
+        
+        document.getElementById('tabelaUsuarios').innerHTML = html || '<tr><td colspan="6">Nenhum usuário encontrado</td></tr>';
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        mostrarAlerta('Erro ao carregar usuários. Por favor, tente novamente.', 'danger');
+    }
+}
+
+async function editarUsuario(id) {
+    try {
+        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/usuarios/${id}`);
+        if (!response.ok) throw new Error('Erro ao carregar dados do usuário');
+        
+        const usuario = await response.json();
+        
+        document.getElementById('usuarioId').value = usuario.id;
+        document.getElementById('usuarioNome').value = usuario.nome;
+        document.getElementById('usuarioEmail').value = usuario.email;
+        document.getElementById('usuarioStatus').value = usuario.status;
+        
+        document.getElementById('modalUsuarioTitulo').textContent = `Editar Usuário #${usuario.id}`;
+        modalUsuario.show();
+    } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+        mostrarAlerta('Erro ao carregar dados do usuário. Por favor, tente novamente.', 'danger');
+    }
+}
+
+async function salvarUsuario() {
+    try {
+        const id = document.getElementById('usuarioId').value;
+        const dados = {
+            nome: document.getElementById('usuarioNome').value,
+            email: document.getElementById('usuarioEmail').value,
+            status: document.getElementById('usuarioStatus').value
+        };
+        
+        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/usuarios/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(dados)
+        });
+
+        if (!response.ok) throw new Error('Erro ao salvar usuário');
+        
+        modalUsuario.hide();
+        mostrarAlerta('Usuário atualizado com sucesso!');
+        carregarUsuarios();
+    } catch (error) {
+        console.error('Erro ao salvar usuário:', error);
+        mostrarAlerta('Erro ao salvar usuário. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+async function alternarStatusUsuario(id, novoStatus) {
+    if (!confirm(`Tem certeza que deseja ${novoStatus === 'ativo' ? 'ativar' : 'suspender'} este usuário?`)) return;
+    
+    try {
+        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/usuarios/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: novoStatus })
+        });
+
+        if (!response.ok) throw new Error('Erro ao alterar status do usuário');
+        
+        mostrarAlerta('Status do usuário alterado com sucesso!');
+        carregarUsuarios();
+    } catch (error) {
+        console.error('Erro ao alterar status do usuário:', error);
+        mostrarAlerta('Erro ao alterar status do usuário. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+// Funções de Planos
+async function carregarPlanos() {
+    try {
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/planos');
+        if (!response.ok) throw new Error('Erro ao carregar planos');
+        
+        const planos = await response.json();
+        
+        let html = '';
+        for (const plano of planos) {
+            html += `
+                <tr>
+                    <td>${plano.id}</td>
+                    <td>${plano.nome}</td>
+                    <td>${formatarMoeda(plano.preco)}</td>
+                    <td>${plano.recorrencia}</td>
+                    <td>
+                        <span class="badge ${plano.status === 'ativo' ? 'bg-success' : 'bg-danger'}">
+                            ${plano.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editarPlano(${plano.id})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="alternarStatusPlano(${plano.id}, '${plano.status === 'ativo' ? 'inativo' : 'ativo'}')">
+                            <i class="bi bi-${plano.status === 'ativo' ? 'pause' : 'play'}"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }
+        
+        document.getElementById('tabelaPlanos').innerHTML = html || '<tr><td colspan="6">Nenhum plano encontrado</td></tr>';
+    } catch (error) {
+        console.error('Erro ao carregar planos:', error);
+        mostrarAlerta('Erro ao carregar planos. Por favor, tente novamente.', 'danger');
+    }
+}
+
+function abrirModalNovoPlano() {
+    document.getElementById('planoId').value = '';
+    document.getElementById('formPlano').reset();
+    document.getElementById('modalPlanoTitulo').textContent = 'Novo Plano';
+    modalPlano.show();
+}
+
+async function editarPlano(id) {
+    try {
+        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/planos/${id}`);
+        if (!response.ok) throw new Error('Erro ao carregar dados do plano');
+        
+        const plano = await response.json();
+        
+        document.getElementById('planoId').value = plano.id;
+        document.getElementById('planoNome').value = plano.nome;
+        document.getElementById('planoPreco').value = plano.preco;
+        document.getElementById('planoRecorrencia').value = plano.recorrencia;
+        
+        document.getElementById('modalPlanoTitulo').textContent = `Editar Plano #${plano.id}`;
+        modalPlano.show();
+    } catch (error) {
+        console.error('Erro ao carregar dados do plano:', error);
+        mostrarAlerta('Erro ao carregar dados do plano. Por favor, tente novamente.', 'danger');
+    }
+}
+
+async function salvarPlano() {
+    try {
+        const id = document.getElementById('planoId').value;
+        const dados = {
+            nome: document.getElementById('planoNome').value,
+            preco: parseFloat(document.getElementById('planoPreco').value),
+            recorrencia: document.getElementById('planoRecorrencia').value
+        };
+        
+        const url = id 
+            ? `http://localhost:3002/api/admin/planos/${id}`
+            : 'http://localhost:3002/api/admin/planos';
+            
+        const response = await fetchAuthenticated(url, {
+            method: id ? 'PUT' : 'POST',
+            body: JSON.stringify(dados)
+        });
+
+        if (!response.ok) throw new Error('Erro ao salvar plano');
+        
+        modalPlano.hide();
+        mostrarAlerta(id ? 'Plano atualizado com sucesso!' : 'Plano criado com sucesso!');
+        carregarPlanos();
+    } catch (error) {
+        console.error('Erro ao salvar plano:', error);
+        mostrarAlerta('Erro ao salvar plano. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+async function alternarStatusPlano(id, novoStatus) {
+    if (!confirm(`Tem certeza que deseja ${novoStatus === 'ativo' ? 'ativar' : 'desativar'} este plano?`)) return;
+    
+    try {
+        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/planos/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: novoStatus })
+        });
+
+        if (!response.ok) throw new Error('Erro ao alterar status do plano');
+        
+        mostrarAlerta('Status do plano alterado com sucesso!');
+        carregarPlanos();
+    } catch (error) {
+        console.error('Erro ao alterar status do plano:', error);
+        mostrarAlerta('Erro ao alterar status do plano. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+// Funções de Configurações
+async function salvarConfiguracoes(e) {
+    e.preventDefault();
+    
+    try {
+        const formData = new FormData();
+        const favicon = document.getElementById('favicon').files[0];
+        
+        if (favicon) {
+            if (!favicon.name.toLowerCase().endsWith('.ico')) {
+                throw new Error('O favicon deve estar no formato .ico');
+            }
+            formData.append('favicon', favicon);
+        }
+        
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/configuracoes', {
+            method: 'PUT',
+            body: formData,
+            headers: {} // Remover Content-Type para permitir que o navegador defina o boundary do multipart/form-data
+        });
+
+        if (!response.ok) throw new Error('Erro ao salvar configurações');
+        
+        mostrarAlerta('Configurações salvas com sucesso!');
+        
+        // Atualizar favicon no navegador
+        const faviconLink = document.querySelector('link[rel="icon"]');
+        if (faviconLink && favicon) {
+            faviconLink.href = `/favicon.ico?v=${Date.now()}`; // Forçar recarga do favicon
+        }
+    } catch (error) {
+        console.error('Erro ao salvar configurações:', error);
+        mostrarAlerta(error.message || 'Erro ao salvar configurações. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+// Funções para abrir modais de criação de categorias
+function abrirModalNovaDisciplina() {
+    document.getElementById('categoriaId').value = '';
+    document.getElementById('categoriaNome').value = '';
+    document.getElementById('categoriaDescricao').value = '';
+    document.getElementById('modalCategoriaTitulo').textContent = 'Nova Disciplina';
+    document.getElementById('categoriaTipo').value = 'disciplina';
+    modalCategoria.show();
+}
+
+function abrirModalNovoAssunto() {
+    document.getElementById('categoriaId').value = '';
+    document.getElementById('categoriaNome').value = '';
+    document.getElementById('categoriaDescricao').value = '';
+    document.getElementById('modalCategoriaTitulo').textContent = 'Novo Assunto';
+    document.getElementById('categoriaTipo').value = 'assunto';
+    
+    // Mostrar campo de disciplina para assuntos
+    document.getElementById('disciplinaContainer').style.display = 'block';
+    carregarDisciplinasParaSelect();
+    
+    modalCategoria.show();
+}
+
+function abrirModalNovaBanca() {
+    document.getElementById('categoriaId').value = '';
+    document.getElementById('categoriaNome').value = '';
+    document.getElementById('categoriaDescricao').value = '';
+    document.getElementById('modalCategoriaTitulo').textContent = 'Nova Banca';
+    document.getElementById('categoriaTipo').value = 'banca';
+    
+    // Ocultar campo de disciplina para bancas
+    document.getElementById('disciplinaContainer').style.display = 'none';
+    
+    modalCategoria.show();
+}
+
+function abrirModalNovoOrgao() {
+    document.getElementById('categoriaId').value = '';
+    document.getElementById('categoriaNome').value = '';
+    document.getElementById('categoriaDescricao').value = '';
+    document.getElementById('modalCategoriaTitulo').textContent = 'Novo Órgão';
+    document.getElementById('categoriaTipo').value = 'orgao';
+    
+    // Ocultar campo de disciplina para órgãos
+    document.getElementById('disciplinaContainer').style.display = 'none';
+    
+    modalCategoria.show();
+}
+
+// Função para carregar disciplinas no select do modal de assuntos
+async function carregarDisciplinasParaSelect() {
+    try {
+        const response = await fetchAuthenticated('http://localhost:3002/api/admin/disciplinas');
+        if (!response.ok) throw new Error('Erro ao carregar disciplinas');
+        
+        const data = await response.json();
+        const disciplinaSelect = document.getElementById('categoriaDisciplina');
+        disciplinaSelect.innerHTML = '<option value="">Selecione uma disciplina</option>';
+        
+        data.disciplinas.forEach(disciplina => {
+            const option = document.createElement('option');
+            option.value = disciplina.id;
+            option.textContent = disciplina.nome;
+            disciplinaSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar disciplinas:', error);
+        mostrarAlerta('Erro ao carregar disciplinas. Por favor, tente novamente.', 'danger');
+    }
+}
+
+// Função para salvar categoria
+async function salvarCategoria() {
+    try {
+        const id = document.getElementById('categoriaId').value;
+        const tipo = document.getElementById('categoriaTipo').value;
+        const nome = document.getElementById('categoriaNome').value;
+        const descricao = document.getElementById('categoriaDescricao').value;
+        
+        if (!nome.trim()) {
+            mostrarAlerta('Nome é obrigatório', 'danger');
+            return;
+        }
+        
+        let dados = {
+            nome: nome.trim(),
+            descricao: descricao.trim() || null
+        };
+        
+        // Adicionar disciplina_id se for assunto
+        if (tipo === 'assunto') {
+            const disciplinaId = document.getElementById('categoriaDisciplina').value;
+            if (!disciplinaId) {
+                mostrarAlerta('Disciplina é obrigatória para assuntos', 'danger');
+                return;
+            }
+            dados.disciplina_id = parseInt(disciplinaId);
+        }
+        
+        const url = id 
+            ? `http://localhost:3002/api/admin/${tipo}s/${id}`
+            : `http://localhost:3002/api/admin/${tipo}s`;
+            
+        const response = await fetchAuthenticated(url, {
+            method: id ? 'PUT' : 'POST',
+            body: JSON.stringify(dados)
+        });
+
+        if (!response.ok) throw new Error('Erro ao salvar categoria');
+        
+        modalCategoria.hide();
+        mostrarAlerta(id ? 'Categoria atualizada com sucesso!' : 'Categoria criada com sucesso!');
+        
+        // Recarregar a lista apropriada
+        switch (tipo) {
+            case 'disciplina':
+                carregarDisciplinas();
+                break;
+            case 'assunto':
+                carregarAssuntos();
+                break;
+            case 'banca':
+                carregarBancas();
+                break;
+            case 'orgao':
+                carregarOrgaos();
+                break;
+        }
+    } catch (error) {
+        console.error('Erro ao salvar categoria:', error);
+        mostrarAlerta('Erro ao salvar categoria. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+// Função para carregar categorias no formulário de questões
+async function carregarCategoriasParaQuestao() {
+    try {
+        const response = await fetchAuthenticated('http://localhost:3002/api/categories/todas');
+        if (!response.ok) throw new Error('Erro ao carregar categorias');
+        
+        const data = await response.json();
+        
+        // Preencher select de disciplinas
+        const disciplinaSelect = document.getElementById('disciplina');
+        disciplinaSelect.innerHTML = '<option value="">Selecione uma disciplina</option>';
+        data.disciplinas.forEach(disciplina => {
+            const option = document.createElement('option');
+            option.value = disciplina.id;
+            option.textContent = disciplina.nome;
+            disciplinaSelect.appendChild(option);
+        });
+        
+        // Preencher select de bancas
+        const bancaSelect = document.getElementById('banca');
+        bancaSelect.innerHTML = '<option value="">Selecione uma banca</option>';
+        data.bancas.forEach(banca => {
+            const option = document.createElement('option');
+            option.value = banca.id;
+            option.textContent = banca.nome;
+            bancaSelect.appendChild(option);
+        });
+        
+        // Preencher select de órgãos
+        const orgaoSelect = document.getElementById('orgao');
+        orgaoSelect.innerHTML = '<option value="">Selecione um órgão</option>';
+        data.orgaos.forEach(orgao => {
+            const option = document.createElement('option');
+            option.value = orgao.id;
+            option.textContent = orgao.nome;
+            orgaoSelect.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+        mostrarAlerta('Erro ao carregar categorias. Por favor, tente novamente.', 'danger');
+    }
+}
+
+// Função para carregar assuntos quando disciplina for selecionada
+async function carregarAssuntosPorDisciplina(disciplinaId) {
+    try {
+        const assuntoSelect = document.getElementById('assunto');
+        assuntoSelect.innerHTML = '<option value="">Selecione um assunto</option>';
+        
+        if (!disciplinaId) return;
+        
+        const response = await fetchAuthenticated(`http://localhost:3002/api/categories/assuntos/${disciplinaId}`);
+        if (!response.ok) throw new Error('Erro ao carregar assuntos');
+        
+        const data = await response.json();
+        data.assuntos.forEach(assunto => {
+            const option = document.createElement('option');
+            option.value = assunto.id;
+            option.textContent = assunto.nome;
+            assuntoSelect.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar assuntos:', error);
+        mostrarAlerta('Erro ao carregar assuntos. Por favor, tente novamente.', 'danger');
+    }
+}
+
+// Função para salvar questão
+async function salvarQuestao() {
+    try {
+        const id = document.getElementById('questaoId').value;
+        
+        const dados = {
+            enunciado: document.getElementById('enunciado').value,
+            alternativa_a: document.getElementById('alternativa_a').value,
+            alternativa_b: document.getElementById('alternativa_b').value,
+            alternativa_c: document.getElementById('alternativa_c').value,
+            alternativa_d: document.getElementById('alternativa_d').value,
+            alternativa_e: document.getElementById('alternativa_e').value || null,
+            gabarito: document.getElementById('gabarito').value,
+            ano: parseInt(document.getElementById('ano').value),
+            disciplina_id: parseInt(document.getElementById('disciplina').value),
+            assunto_id: parseInt(document.getElementById('assunto').value),
+            banca_id: parseInt(document.getElementById('banca').value),
+            orgao_id: parseInt(document.getElementById('orgao').value),
+            comentario_professor: document.getElementById('comentario_professor').value || null
+        };
+        
+        // Validações básicas
+        if (!dados.enunciado.trim()) {
+            mostrarAlerta('Enunciado é obrigatório', 'danger');
+            return;
+        }
+        
+        if (!dados.alternativa_a.trim() || !dados.alternativa_b.trim() || 
+            !dados.alternativa_c.trim() || !dados.alternativa_d.trim()) {
+            mostrarAlerta('Todas as alternativas (A, B, C, D) são obrigatórias', 'danger');
+            return;
+        }
+        
+        if (!dados.gabarito) {
+            mostrarAlerta('Gabarito é obrigatório', 'danger');
+            return;
+        }
+        
+        if (!dados.disciplina_id || !dados.assunto_id || !dados.banca_id || !dados.orgao_id) {
+            mostrarAlerta('Todas as categorias são obrigatórias', 'danger');
+            return;
+        }
+        
+        const url = id 
+            ? `http://localhost:3002/api/admin/questoes/${id}`
+            : 'http://localhost:3002/api/admin/questoes';
+            
+        const response = await fetchAuthenticated(url, {
+            method: id ? 'PUT' : 'POST',
+            body: JSON.stringify(dados)
+        });
+
+        if (!response.ok) throw new Error('Erro ao salvar questão');
+        
+        modalQuestao.hide();
+        mostrarAlerta(id ? 'Questão atualizada com sucesso!' : 'Questão criada com sucesso!');
+        carregarQuestoes();
+        
+    } catch (error) {
+        console.error('Erro ao salvar questão:', error);
+        mostrarAlerta('Erro ao salvar questão. Por favor, verifique sua conexão.', 'danger');
+    }
+}
+
+// Função para sair
+function sair() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+}
+
+// Inicialização quando o documento estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar modais Bootstrap
+    modalQuestao = new bootstrap.Modal(document.getElementById('modalQuestao'));
+    modalCategoria = new bootstrap.Modal(document.getElementById('modalCategoria'));
+    modalPlano = new bootstrap.Modal(document.getElementById('modalPlano'));
+    modalUsuario = new bootstrap.Modal(document.getElementById('modalUsuario'));
+
+    // Verificar autenticação
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+
+    // Carregar dados iniciais
+    mostrarDashboard();
+
+    // Configurar listeners de formulários
+    const formConfiguracoes = document.getElementById('form-configuracoes');
+    if (formConfiguracoes) {
+        formConfiguracoes.addEventListener('submit', salvarConfiguracoes);
+    }
+
+    // Configurar listener para mudança de disciplina
+    const disciplinaSelect = document.getElementById('disciplina');
+    if (disciplinaSelect) {
+        disciplinaSelect.addEventListener('change', function() {
+            carregarAssuntosPorDisciplina(this.value);
+        });
+    }
+});

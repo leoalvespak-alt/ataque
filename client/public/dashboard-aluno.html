@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Dashboard - Rota de Ataque Questões</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
+    <link rel="mask-icon" href="favicon.svg" color="#c1121f">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="utils.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1b1b1b;
+            color: #f2f2f2;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background-color: rgba(27, 27, 27, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(242, 242, 242, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #c1121f;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: #f2f2f2;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav a:hover {
+            color: #c1121f;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem 0;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
+            padding: 3rem 0;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #f2f2f2, #c1121f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #cccccc;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid rgba(242, 242, 242, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #c1121f;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: #cccccc;
+            font-weight: 500;
+        }
+
+        .stat-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4CAF50;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #f2f2f2;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .chart-container {
+            background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(242, 242, 242, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #f2f2f2;
+        }
+
+        /* Tables */
+        .table-section {
+            margin-bottom: 3rem;
+        }
+
+        .table-container {
+            background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(242, 242, 242, 0.1);
+            overflow-x: auto;
+        }
+
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #f2f2f2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(242, 242, 242, 0.1);
+        }
+
+        th {
+            background-color: rgba(193, 18, 31, 0.1);
+            font-weight: 600;
+            color: #c1121f;
+        }
+
+        tr:hover {
+            background-color: rgba(242, 242, 242, 0.05);
+        }
+
+        .percentage-cell {
+            font-weight: 600;
+        }
+
+        .percentage-high {
+            color: #4CAF50;
+        }
+
+        .percentage-medium {
+            color: #FF9800;
+        }
+
+        .percentage-low {
+            color: #f44336;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #cccccc;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Rota de Ataque Questões</div>
+                <nav class="nav">
+                    <a href="/">Início</a>
+                    <a href="/questoes.html">Questões</a>
+                    <a href="/dashboard-aluno.html" class="active">Meu Dashboard</a>
+                    <a href="/perfil.html">Perfil</a>
+                    <a href="#" onclick="sair()">Sair</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <h1>Meu Dashboard</h1>
+                <p>Acompanhe seu progresso e desempenho em tempo real</p>
+            </section>
+
+            <!-- Loading -->
+            <div id="loading" class="loading">
+                Carregando suas estatísticas...
+            </div>
+
+            <!-- Stats Cards -->
+            <div id="statsCards" class="stats-grid" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRespostas">0</div>
+                    <div class="stat-label">Total de Respostas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-percentage" id="percentualAcerto">0%</div>
+                    <div class="stat-label">Taxa de Acerto</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="xpTotal">0</div>
+                    <div class="stat-label">XP Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="respostasRecentes">0</div>
+                    <div class="stat-label">Respostas (30 dias)</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div id="chartsSection" class="charts-section" style="display: none;">
+                <h2 class="section-title">Análise Detalhada</h2>
+                
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3 class="chart-title">Desempenho por Disciplina</h3>
+                        <canvas id="disciplinaChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3 class="chart-title">Progresso dos Últimos 7 Dias</h3>
+                        <canvas id="progressoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tables Section -->
+            <div id="tablesSection" class="table-section" style="display: none;">
+                <div class="table-container">
+                    <h3 class="table-title">Desempenho por Assunto</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Assunto</th>
+                                <th>Disciplina</th>
+                                <th>Total</th>
+                                <th>Acertos</th>
+                                <th>Taxa de Acerto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assuntosTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let disciplinaChart, progressoChart;
+
+        // Função para sair
+        function sair() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Função para carregar estatísticas
+        async function carregarEstatisticas() {
+            try {
+                const response = await fetchAuthenticated('http://localhost:3002/api/stats/me');
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar estatísticas');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    exibirEstatisticas(data.stats);
+                } else {
+                    throw new Error(data.message || 'Erro ao carregar estatísticas');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+                document.getElementById('loading').innerHTML = 'Erro ao carregar estatísticas. Tente novamente.';
+            }
+        }
+
+        // Função para exibir estatísticas
+        function exibirEstatisticas(stats) {
+            // Ocultar loading
+            document.getElementById('loading').style.display = 'none';
+            
+            // Exibir seções
+            document.getElementById('statsCards').style.display = 'grid';
+            document.getElementById('chartsSection').style.display = 'block';
+            document.getElementById('tablesSection').style.display = 'block';
+            
+            // Preencher cards de estatísticas
+            document.getElementById('totalRespostas').textContent = stats.geral.totalRespostas;
+            document.getElementById('percentualAcerto').textContent = stats.geral.percentualAcerto + '%';
+            document.getElementById('xpTotal').textContent = stats.geral.xpTotal;
+            document.getElementById('respostasRecentes').textContent = stats.recente.respostasUltimos30Dias;
+            
+            // Criar gráfico de disciplinas
+            criarGraficoDisciplinas(stats.porDisciplina);
+            
+            // Criar gráfico de progresso
+            criarGraficoProgresso(stats.progressoDiario || []);
+            
+            // Preencher tabela de assuntos
+            preencherTabelaAssuntos(stats.porAssunto);
+        }
+
+        // Função para criar gráfico de disciplinas
+        function criarGraficoDisciplinas(dados) {
+            const ctx = document.getElementById('disciplinaChart').getContext('2d');
+            
+            if (disciplinaChart) {
+                disciplinaChart.destroy();
+            }
+            
+            disciplinaChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: dados.map(d => d.nome),
+                    datasets: [{
+                        data: dados.map(d => d.percentual),
+                        backgroundColor: [
+                            '#c1121f',
+                            '#4CAF50',
+                            '#FF9800',
+                            '#2196F3',
+                            '#9C27B0',
+                            '#FF5722',
+                            '#607D8B',
+                            '#795548'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#2d2d2d'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#f2f2f2',
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para criar gráfico de progresso
+        function criarGraficoProgresso(dados) {
+            const ctx = document.getElementById('progressoChart').getContext('2d');
+            
+            if (progressoChart) {
+                progressoChart.destroy();
+            }
+            
+            progressoChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dados.map(d => {
+                        const data = new Date(d.data);
+                        return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                    }),
+                    datasets: [{
+                        label: 'Taxa de Acerto (%)',
+                        data: dados.map(d => d.percentual),
+                        borderColor: '#c1121f',
+                        backgroundColor: 'rgba(193, 18, 31, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f2f2f2'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: '#f2f2f2'
+                            },
+                            grid: {
+                                color: 'rgba(242, 242, 242, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#f2f2f2'
+                            },
+                            grid: {
+                                color: 'rgba(242, 242, 242, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para preencher tabela de assuntos
+        function preencherTabelaAssuntos(assuntos) {
+            const tbody = document.getElementById('assuntosTable');
+            tbody.innerHTML = '';
+            
+            assuntos.forEach(assunto => {
+                const row = document.createElement('tr');
+                
+                const percentualClass = assunto.percentual >= 80 ? 'percentage-high' : 
+                                       assunto.percentual >= 60 ? 'percentage-medium' : 'percentage-low';
+                
+                row.innerHTML = `
+                    <td>${assunto.nome}</td>
+                    <td>${assunto.disciplina}</td>
+                    <td>${assunto.total}</td>
+                    <td>${assunto.acertos}</td>
+                    <td class="percentage-cell ${percentualClass}">${assunto.percentual}%</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticação
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Carregar estatísticas
+            carregarEstatisticas();
+        });
+    </script>
+</body>
+</html>

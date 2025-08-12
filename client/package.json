@@ -1,0 +1,14 @@
+{
+  "name": "rota-de-ataque-questoes-client",
+  "version": "1.0.0",
+  "description": "Frontend da plataforma Rota de Ataque Questões",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'Build completed'",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

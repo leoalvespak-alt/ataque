@@ -1,0 +1,179 @@
+<script>
+        // Dados dos planos
+        const planos = {
+            gratuito: {
+                nome: "Plano Gratuito",
+                preco: "R$ 0,00",
+                valor: 0
+            },
+            mensal: {
+                nome: "Plano Mensal",
+                preco: "R$ 29,90",
+                valor: 29.90
+            },
+            anual: {
+                nome: "Plano Anual",
+                preco: "R$ 299,90",
+                valor: 299.90
+            }
+        };
+
+        // Função para selecionar plano
+        function selecionarPlano(tipo) {
+            // Verificar se o usuário está logado
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Você precisa estar logado para assinar um plano. Redirecionando...');
+                window.location.href = '/login';
+                return;
+            }
+            
+            const plano = planos[tipo];
+            
+            // Armazenar o tipo de plano selecionado
+            sessionStorage.setItem('planoSelecionado', tipo);
+            
+            document.getElementById('plano-nome-modal').textContent = plano.nome;
+            document.getElementById('plano-preco-modal').textContent = plano.preco + (tipo === 'anual' ? '/ano' : '/mês');
+            
+            document.getElementById('modal-pagamento').style.display = 'block';
+        }
+
+        // Função para fechar modal
+        function fecharModal() {
+            document.getElementById('modal-pagamento').style.display = 'none';
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal-pagamento');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Função para toggle FAQ
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const isActive = answer.classList.contains('active');
+            
+            // Fechar todas as outras respostas
+            document.querySelectorAll('.faq-answer').forEach(ans => {
+                ans.classList.remove('active');
+            });
+            
+            // Abrir/fechar a resposta clicada
+            if (!isActive) {
+                answer.classList.add('active');
+            }
+        }
+
+        // Formulário de pagamento
+        document.getElementById('form-pagamento').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simular processamento de pagamento
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.textContent = 'Processando...';
+            submitBtn.disabled = true;
+            
+            // Obter dados do formulário
+            const formData = new FormData(this);
+            const tipoPlano = sessionStorage.getItem('planoSelecionado');
+            
+            const dadosPagamento = {
+                nome: formData.get('nome'),
+                email: formData.get('email'),
+                cpf: formData.get('cpf'),
+                telefone: formData.get('telefone'),
+                tipoPlano: tipoPlano
+            };
+            
+            // Primeira etapa: criar cliente no ASAAS
+            fetch('http://localhost:3002/api/asaas/criar-cliente', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    nome: dadosPagamento.nome,
+                    email: dadosPagamento.email,
+                    cpf: dadosPagamento.cpf,
+                    telefone: dadosPagamento.telefone
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.customer) {
+                    // Cliente criado com sucesso, agora criar assinatura
+                    return criarAssinatura(data.customer.id, tipoPlano);
+                } else {
+                    throw new Error(data.message || 'Erro ao criar cliente');
+                }
+            })
+            .then(assinatura => {
+                alert('Assinatura criada com sucesso! Você receberá as instruções de pagamento por email.');
+                fecharModal();
+                
+                // Redirecionar para o perfil para ver a assinatura
+                setTimeout(() => {
+                    window.location.href = '/perfil';
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Erro no pagamento:', error);
+                alert('Erro ao processar pagamento: ' + error.message);
+            })
+            .finally(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+        
+        // Função auxiliar para criar assinatura
+        function criarAssinatura(customerId, tipoPlano) {
+            // Mapear tipo de plano para ID (assumindo IDs 1 e 2)
+            const planoId = tipoPlano === 'mensal' ? 1 : 2;
+            
+            return fetch('http://localhost:3002/api/asaas/criar-assinatura', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    customer_id: customerId,
+                    plano_id: planoId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.subscription) {
+                    return data.subscription;
+                } else {
+                    throw new Error(data.message || 'Erro ao criar assinatura');
+                }
+            });
+        }
+
+        // Máscara para CPF
+        document.getElementById('cpf').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            e.target.value = value;
+        });
+
+        // Máscara para telefone
+        document.getElementById('telefone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{2})(\d)/, '($1) $2');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
+        });
+    
+</script>

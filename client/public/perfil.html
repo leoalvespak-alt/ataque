@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - Rota de Ataque Questões</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
+    <link rel="mask-icon" href="favicon.svg" color="#c1121f">
+    <script src="utils.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1b1b1b;
+            color: #f2f2f2;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background-color: rgba(27, 27, 27, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(242, 242, 242, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #c1121f;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: #f2f2f2;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav a:hover {
+            color: #c1121f;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem 0;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
+            padding: 3rem 0;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #f2f2f2, #c1121f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #cccccc;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Perfil Grid */
+        .perfil-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* Perfil Card */
+        .perfil-card {
+            background-color: #2a2a2a;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            height: fit-content;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #c1121f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #f2f2f2;
+            margin: 0 auto 1.5rem;
+        }
+
+        .usuario-nome {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #f2f2f2;
+        }
+
+        .usuario-email {
+            color: #cccccc;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-premium {
+            background-color: #28a745;
+            color: #f2f2f2;
+        }
+
+        .status-gratuito {
+            background-color: #6c757d;
+            color: #f2f2f2;
+        }
+
+        .xp-info {
+            margin-bottom: 2rem;
+        }
+
+        .xp-valor {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #c1121f;
+            margin-bottom: 0.5rem;
+        }
+
+        .xp-label {
+            color: #cccccc;
+            font-size: 0.9rem;
+        }
+
+        /* Patente Info */
+        .patente-info {
+            text-align: center;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(193, 18, 31, 0.1) 0%, rgba(193, 18, 31, 0.05) 100%);
+            border-radius: 8px;
+            border: 1px solid rgba(193, 18, 31, 0.2);
+        }
+
+        .patente-icone {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .patente-nome {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f2f2f2;
+            margin-bottom: 0.25rem;
+        }
+
+        .patente-descricao {
+            color: #cccccc;
+            font-size: 0.8rem;
+        }
+
+        /* Conteúdo Principal */
+        .conteudo-principal {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .secao {
+            background-color: #2a2a2a;
+            padding: 2rem;
+            border-radius: 12px;
+        }
+
+        .secao h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #f2f2f2;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-item {
+            background-color: #333;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #c1121f;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #cccccc;
+            font-size: 0.9rem;
+        }
+
+        /* Assinatura Info */
+        .assinatura-info {
+            background-color: #333;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .assinatura-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .assinatura-plano {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f2f2f2;
+        }
+
+        .assinatura-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .assinatura-ativa {
+            background-color: #28a745;
+            color: #f2f2f2;
+        }
+
+        .assinatura-expirada {
+            background-color: #dc3545;
+            color: #f2f2f2;
+        }
+
+        .assinatura-detalhes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .assinatura-detalhe {
+            text-align: center;
+        }
+
+        .assinatura-detalhe-label {
+            color: #cccccc;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .assinatura-detalhe-valor {
+            font-weight: 600;
+            color: #f2f2f2;
+        }
+
+        /* Histórico Table */
+        .historico-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .historico-table th {
+            background-color: #333;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #f2f2f2;
+            border-bottom: 1px solid #444;
+        }
+
+        .historico-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #444;
+        }
+
+        .historico-table tr:hover {
+            background-color: #333;
+        }
+
+        .resultado-acerto {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .resultado-erro {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        /* Configurações Form */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #f2f2f2;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background-color: #333;
+            color: #f2f2f2;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #c1121f;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #c1121f;
+            color: #f2f2f2;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background-color: #a0101a;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid #c1121f;
+            color: #c1121f;
+        }
+
+        .btn-secondary:hover {
+            background-color: #c1121f;
+            color: #f2f2f2;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #111111;
+            padding: 2rem 0;
+            text-align: center;
+            border-top: 1px solid #333;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .perfil-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .assinatura-detalhes {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .historico-table {
+                font-size: 0.9rem;
+            }
+
+            .historico-table th,
+            .historico-table td {
+                padding: 0.5rem;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: #2a2a2a;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(242, 242, 242, 0.1);
+        }
+
+        .modal-title {
+            color: #f2f2f2;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .close {
+            color: #f2f2f2;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #c1121f;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #f2f2f2;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid rgba(242, 242, 242, 0.2);
+            border-radius: 8px;
+            background-color: rgba(242, 242, 242, 0.05);
+            color: #f2f2f2;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #c1121f;
+        }
+
+        .form-group input[readonly] {
+            background-color: rgba(242, 242, 242, 0.1);
+            cursor: not-allowed;
+            }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Rota de Ataque Questões</div>
+                                        <nav class="nav">
+                            <a href="/">Início</a>
+                            <a href="/questoes">Questões</a>
+                            <a href="/ranking">Ranking</a>
+                            <a href="/planos">Planos</a>
+                            <a href="/perfil">Perfil</a>
+                        </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <h1>👤 Meu Perfil</h1>
+                <p>Gerencie sua conta e acompanhe seu progresso</p>
+            </section>
+
+            <!-- Conteúdo Principal -->
+            <section class="perfil-grid">
+                <!-- Card de Perfil -->
+                <div class="perfil-card">
+                    <div class="avatar">JS</div>
+                    <h2 class="usuario-nome">João Silva</h2>
+                    <p class="usuario-email">joao@teste.com</p>
+                    
+                    <span class="status-badge status-premium">Premium</span>
+                    
+                    <div class="xp-info">
+                        <div class="xp-valor" id="xp-valor">0</div>
+                        <div class="xp-label">Pontos de Experiência</div>
+                    </div>
+                    
+                    <div class="patente-info" id="patente-info">
+                        <div class="patente-icone" id="patente-icone">🌟</div>
+                        <div class="patente-nome" id="patente-nome">Iniciante</div>
+                        <div class="patente-descricao" id="patente-descricao">Primeiros passos</div>
+                    </div>
+                    
+                    <button class="btn" onclick="editarPerfil()" style="margin-bottom: 1rem; width: 100%;">Editar Perfil</button>
+                    <button class="btn btn-secondary" onclick="alterarSenha()" style="margin-bottom: 1rem; width: 100%;">Alterar Senha</button>
+                    <button class="btn btn-danger" onclick="sair()" style="width: 100%;">Sair</button>
+                </div>
+
+                <!-- Conteúdo Principal -->
+                <div class="conteudo-principal">
+                    <!-- Estatísticas -->
+                    <div class="secao">
+                        <h2>📊 Estatísticas</h2>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-number">47</div>
+                                <div class="stat-label">Questões Respondidas</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">32</div>
+                                <div class="stat-label">Acertos</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">68%</div>
+                                <div class="stat-label">Taxa de Acerto</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">15</div>
+                                <div class="stat-label">Dias Ativo</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">8</div>
+                                <div class="stat-label">Disciplinas Estudadas</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Comentários Feitos</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assinatura -->
+                    <div class="secao">
+                        <h2>💳 Assinatura</h2>
+                        <div class="assinatura-info">
+                            <div class="assinatura-header">
+                                <div class="assinatura-plano">Plano Mensal Premium</div>
+                                <span class="assinatura-status assinatura-ativa">Ativa</span>
+                            </div>
+                            <div class="assinatura-detalhes">
+                                <div class="assinatura-detalhe">
+                                    <div class="assinatura-detalhe-label">Valor</div>
+                                    <div class="assinatura-detalhe-valor">R$ 29,90/mês</div>
+                                </div>
+                                <div class="assinatura-detalhe">
+                                    <div class="assinatura-detalhe-label">Próxima Cobrança</div>
+                                    <div class="assinatura-detalhe-valor">15/09/2024</div>
+                                </div>
+                                <div class="assinatura-detalhe">
+                                    <div class="assinatura-detalhe-label">Status</div>
+                                    <div class="assinatura-detalhe-valor">Ativo</div>
+                                </div>
+                                <div class="assinatura-detalhe">
+                                    <div class="assinatura-detalhe-label">Método de Pagamento</div>
+                                    <div class="assinatura-detalhe-valor">Cartão de Crédito</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="gerenciarAssinatura()">Gerenciar Assinatura</button>
+                    </div>
+
+                    <!-- Histórico de Questões -->
+                    <div class="secao">
+                        <h2>📝 Histórico de Questões</h2>
+                        <table class="historico-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Questão</th>
+                                    <th>Disciplina</th>
+                                    <th>Resultado</th>
+                                    <th>XP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historico-body">
+                                <!-- Dados serão carregados via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Configurações -->
+                    <div class="secao">
+                        <h2>⚙️ Configurações</h2>
+                        <form id="form-configuracoes">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nome">Nome Completo</label>
+                                    <input type="text" id="nome" name="nome" value="João Silva" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">E-mail</label>
+                                    <input type="email" id="email" name="email" value="joao@teste.com" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="telefone">Telefone</label>
+                                    <input type="tel" id="telefone" name="telefone" value="(11) 99999-9999">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cidade">Cidade</label>
+                                    <input type="text" id="cidade" name="cidade" value="São Paulo">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bio">Biografia</label>
+                                <textarea id="bio" name="bio" rows="3" placeholder="Conte um pouco sobre você...">Estudante focado em concursos públicos, especialmente na área de Direito.</textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="notificacoes">Notificações</label>
+                                <select id="notificacoes" name="notificacoes">
+                                    <option value="todas">Todas as notificações</option>
+                                    <option value="importantes">Apenas importantes</option>
+                                    <option value="nenhuma">Nenhuma notificação</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn">Salvar Alterações</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Rota de Ataque Questões. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Função para carregar dados do usuário
+        async function carregarDadosUsuario() {
+            try {
+                const response = await fetchAuthenticated('http://localhost:3002/api/users/perfil', {
+                    method: 'GET'
+                });
+                const data = await response.json();
+
+                if (data.success && data.usuario) {
+                    const user = data.usuario;
+
+                    // Atualizar card de perfil
+                    document.querySelector('.usuario-nome').textContent = user.nome;
+                    document.querySelector('.usuario-email').textContent = user.email;
+                    document.querySelector('.xp-valor').textContent = user.xp.toLocaleString('pt-BR');
+
+                    const statusBadge = document.querySelector('.status-badge');
+                    statusBadge.textContent = user.status === 'premium' ? 'Premium' : 'Gratuito';
+                    statusBadge.className = `status-badge status-${user.status}`;
+
+                    // Preencher formulário de configurações
+                    document.getElementById('nome').value = user.nome;
+                    document.getElementById('email').value = user.email;
+
+                    // Atualizar informações da assinatura
+                    const assinaturaInfoDiv = document.querySelector('.assinatura-info');
+                    const gerenciarAssinaturaBtn = document.querySelector('button[onclick="gerenciarAssinatura()"]');
+                    
+                    if (user.assinatura_ativa && user.assinatura_ativa.plano) {
+                        assinaturaInfoDiv.innerHTML = `
+                            <div class="assinatura-header">
+                                <div class="assinatura-plano">${user.assinatura_ativa.plano.nome}</div>
+                                <span class="assinatura-status assinatura-ativa">Ativa</span>
+                            </div>
+                            <div class="assinatura-detalhes">
+                                <div class="assinatura-detalhe">
+                                    <div class="assinatura-detalhe-label">Valor</div>
+                                    <div class="assinatura-detalhe-valor">R$ ${user.assinatura_ativa.plano.preco.replace('.', ',')}/${user.assinatura_ativa.plano.recorrencia}</div>
+                                </div>
+                                <div class="assinatura-detalhe">
+                                    <div class="assinatura-detalhe-label">Próxima Cobrança</div>
+                                    <div class="assinatura-detalhe-valor">${new Date(user.assinatura_ativa.proxima_cobranca).toLocaleDateString('pt-BR')}</div>
+                                </div>
+                                <div class="assinatura-detalhe">
+                                    <div class="assinatura-detalhe-label">Status</div>
+                                    <div class="assinatura-detalhe-valor">${user.assinatura_ativa.status}</div>
+                                </div>
+                            </div>
+                        `;
+                        gerenciarAssinaturaBtn.textContent = 'Ver/Gerenciar Assinatura';
+                        gerenciarAssinaturaBtn.onclick = () => window.open(user.assinatura_ativa.asaas_link_gerenciamento, '_blank');
+                    } else {
+                        assinaturaInfoDiv.innerHTML = `
+                            <div class="assinatura-header">
+                                <div class="assinatura-plano">Nenhum plano ativo</div>
+                                <span class="assinatura-status status-inativo">Inativa</span>
+                            </div>
+                            <p style="margin-top: 1rem;">Torne-se Premium para acesso ilimitado!</p>
+                        `;
+                        gerenciarAssinaturaBtn.textContent = 'Ver Planos';
+                        gerenciarAssinaturaBtn.onclick = () => window.location.href = '/planos';
+                    }
+
+                    // Preencher estatísticas
+                    document.querySelector('.stat-number:nth-child(1)').textContent = user.questoes_respondidas.toLocaleString('pt-BR');
+                    document.querySelector('.stat-number:nth-child(2)').textContent = user.questoes_acertadas.toLocaleString('pt-BR');
+                    document.querySelector('.stat-number:nth-child(3)').textContent = user.questoes_respondidas > 0 ? Math.round((user.questoes_acertadas / user.questoes_respondidas) * 100) + '%' : '0%';
+                    document.querySelector('.stat-number:nth-child(4)').textContent = user.dias_ativo.toLocaleString('pt-BR');
+                    document.querySelector('.stat-number:nth-child(5)').textContent = user.disciplinas_estudadas.toLocaleString('pt-BR');
+                    document.querySelector('.stat-number:nth-child(6)').textContent = user.comentarios_feitos.toLocaleString('pt-BR');
+
+                } else {
+                    console.error('Erro ao carregar dados do usuário:', data.message || 'Erro desconhecido');
+                }
+            } catch (error) {
+                console.error('Erro de rede ao carregar dados do usuário:', error);
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarDadosUsuario();
+            carregarHistorico();
+        });
+
+        // Função para carregar histórico
+        async function carregarHistorico() {
+            const tbody = document.getElementById('historico-body');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Carregando histórico...</td></tr>';
+            
+            try {
+                const response = await fetchAuthenticated('http://localhost:3002/api/users/historico', {
+                    method: 'GET'
+                });
+                const data = await response.json();
+                
+                if (data.success && data.historico && data.historico.length > 0) {
+            tbody.innerHTML = '';
+                    data.historico.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                            <td>${new Date(item.data_resposta).toLocaleDateString('pt-BR')}</td>
+                            <td>${item.questao.enunciado.substring(0, 50)}...</td>
+                            <td>${item.questao.disciplina.nome}</td>
+                            <td class="resultado-${item.acertou ? 'acerto' : 'erro'}">${item.acertou ? '✓ Acerto' : '✗ Erro'}</td>
+                            <td>+${item.acertou ? (item.questao.xp_acerto || 20) : 0} XP</td>
+                `;
+                tbody.appendChild(tr);
+            });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum histórico encontrado.</td></tr>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">Erro ao carregar histórico.</td></tr>';
+            }
+        }
+
+        // Função para editar perfil
+        function editarPerfil() {
+            // Buscar dados atuais do usuário
+            fetchAuthenticated('http://localhost:3002/api/users/perfil', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.usuario) {
+                    // Preencher modal com dados atuais
+                    document.getElementById('edit_nome').value = data.usuario.nome;
+                    document.getElementById('edit_email').value = data.usuario.email;
+                    
+                    // Mostrar modal
+                    document.getElementById('modal-editar-perfil').style.display = 'block';
+                } else {
+                    alert('Erro ao carregar dados do perfil: ' + (data.message || 'Erro desconhecido'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                if (error !== 'Unauthorized') {
+                    alert('Erro ao carregar dados do perfil. Verifique sua conexão.');
+                }
+            });
+        }
+
+        // Função para alterar senha
+        function alterarSenha() {
+            // Mostrar modal de alteração de senha
+            document.getElementById('modal-alterar-senha').style.display = 'block';
+        }
+
+        // Função para sair
+        function sair() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/';
+            }
+        }
+
+        // Função para gerenciar assinatura
+        function gerenciarAssinatura() {
+            // Buscar link de gerenciamento
+            fetchAuthenticated('http://localhost:3002/api/users/perfil', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.usuario && data.usuario.assinatura_ativa) {
+                    window.open(data.usuario.assinatura_ativa.asaas_link_gerenciamento, '_blank');
+                } else {
+                    window.location.href = '/planos';
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                if (error !== 'Unauthorized') {
+                    alert('Erro ao buscar link de gerenciamento. Verifique sua conexão.');
+                }
+            });
+        }
+
+        // Formulário de configurações
+        document.getElementById('form-configuracoes').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.textContent = 'Salvando...';
+            submitBtn.disabled = true;
+            
+            const nome = document.getElementById('nome').value.trim();
+            const email = document.getElementById('email').value.trim();
+            // Adicione aqui outros campos do formulário para salvar, se houver backend para eles
+            // const telefone = document.getElementById('telefone').value.trim();
+
+            try {
+                const response = await fetchAuthenticated('http://localhost:3002/api/users/perfil', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nome, email /* , telefone */ })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Configurações de perfil salvas com sucesso!');
+                    // Atualizar user no localStorage se o nome mudou
+                    const currentUser = JSON.parse(localStorage.getItem('user'));
+                    if (currentUser) {
+                        currentUser.nome = nome;
+                        localStorage.setItem('user', JSON.stringify(currentUser));
+                    }
+                    // Não recarrega a página automaticamente para permitir ver a mensagem
+                    // location.reload(); 
+                } else {
+                    alert('Erro ao salvar configurações: ' + (data.message || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                if (error !== 'Unauthorized') {
+                    alert('Erro ao salvar configurações. Verifique sua conexão.');
+                }
+            }
+            finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Máscara para telefone
+        document.getElementById('telefone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{2})(\d)/, '($1) $2');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
+        });
+    </script>
+
+    <!-- Modal Editar Perfil -->
+    <div id="modal-editar-perfil" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Perfil</h3>
+                <span class="close" onclick="fecharModal('modal-editar-perfil')">&times;</span>
+            </div>
+            <form id="form-editar-perfil" onsubmit="event.preventDefault(); salvarPerfil();">
+                <div class="form-group">
+                    <label for="edit_nome">Nome</label>
+                    <input type="text" id="edit_nome" name="nome" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_email">Email (não editável)</label>
+                    <input type="email" id="edit_email" name="email" readonly style="background-color: #f5f5f5;">
+                </div>
+                
+                <button type="submit" class="btn">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Alterar Senha -->
+    <div id="modal-alterar-senha" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Alterar Senha</h3>
+                <span class="close" onclick="fecharModal('modal-alterar-senha')">&times;</span>
+            </div>
+            <form id="form-alterar-senha" onsubmit="event.preventDefault(); salvarSenha();">
+                <div class="form-group">
+                    <label for="senha_atual">Senha Atual</label>
+                    <input type="password" id="senha_atual" name="senha_atual" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nova_senha">Nova Senha</label>
+                    <input type="password" id="nova_senha" name="nova_senha" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmar_senha">Confirmar Nova Senha</label>
+                    <input type="password" id="confirmar_senha" name="confirmar_senha" required minlength="6">
+                </div>
+                
+                <button type="submit" class="btn">Alterar Senha</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

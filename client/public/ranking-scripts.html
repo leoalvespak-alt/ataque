@@ -1,0 +1,112 @@
+<script>
+        let rankingAtual = 'geral';
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarRanking();
+            atualizarEstatisticas();
+        });
+
+        // Função para carregar ranking real da API
+        async function carregarRanking() {
+            const tbody = document.getElementById('ranking-body');
+            tbody.innerHTML = '<tr><td colspan="4">Carregando...</td></tr>';
+            
+            try {
+                const response = await fetchAuthenticated(`http://localhost:3002/api/users/ranking?tipo=${rankingAtual}`);
+                const data = await response.json();
+
+                tbody.innerHTML = '';
+                
+                if (data.success && data.ranking && data.ranking.length > 0) {
+                    data.ranking.forEach((usuario, index) => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="posicao">${usuario.posicao}</td>
+                            <td>${usuario.nome}</td>
+                            <td class="xp">${usuario.xp.toLocaleString()}</td>
+                            <td class="status">
+                                <span class="status-badge status-${usuario.status}">
+                                    ${usuario.status === 'premium' ? 'Premium' : 'Gratuito'}
+                                </span>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4">Nenhum usuário encontrado</td></tr>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar ranking:', error);
+                tbody.innerHTML = '<tr><td colspan="4">Erro ao carregar dados</td></tr>';
+            }
+        }
+
+        // Função para filtrar ranking
+        function filtrarRanking(tipo) {
+            rankingAtual = tipo;
+            
+            // Atualizar botões
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // event.target pode não ser o botão, então buscar pelo ID ou classe
+            const targetButton = document.querySelector(`.filter-btn[onclick*='${tipo}']`);
+            if (targetButton) {
+                targetButton.classList.add('active');
+            }
+            
+            // Atualizar título e descrição
+            const titulos = {
+                'geral': '🏆 Top 20 - Ranking Geral',
+                'mensal': '📅 Top 10 - Ranking Mensal',
+                'semanal': '📊 Top 10 - Ranking Semanal'
+            };
+            
+            const descricoes = {
+                'geral': 'Atualizado em tempo real',
+                'mensal': 'Ranking do mês atual',
+                'semanal': 'Ranking da semana atual'
+            };
+            
+            document.getElementById('rankingTitulo').textContent = titulos[tipo];
+            document.getElementById('rankingDescricao').textContent = descricoes[tipo];
+            
+            carregarRanking();
+        }
+
+        // Função para atualizar estatísticas reais
+        async function atualizarEstatisticas() {
+            try {
+                const response = await fetchAuthenticated('http://localhost:3002/api/admin/dashboard', {
+                    method: 'GET'
+                });
+                const data = await response.json();
+
+                if (data.success && data.stats) {
+                    document.getElementById('totalUsuarios').textContent = data.stats.totalUsuarios.toLocaleString();
+                    document.getElementById('totalQuestoes').textContent = data.stats.totalQuestoes.toLocaleString();
+                    document.getElementById('questoesRespondidas').textContent = data.stats.totalRespostas.toLocaleString();
+                    document.getElementById('mediaXP').textContent = Math.round(data.stats.mediaXP || 0).toLocaleString();
+                } else {
+                    console.error('Erro ao carregar estatísticas do dashboard:', data.message || 'Erro desconhecido');
+                    // Manter valores padrão em caso de erro
+                    document.getElementById('totalUsuarios').textContent = '0';
+                    document.getElementById('totalQuestoes').textContent = '0';
+                    document.getElementById('questoesRespondidas').textContent = '0';
+                    document.getElementById('mediaXP').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Erro de rede ao carregar estatísticas:', error);
+                // Manter valores padrão em caso de erro
+                document.getElementById('totalUsuarios').textContent = '0';
+                document.getElementById('totalQuestoes').textContent = '0';
+                document.getElementById('questoesRespondidas').textContent = '0';
+                document.getElementById('mediaXP').textContent = '0';
+            }
+        }
+
+        // Remover simulação de atualização em tempo real
+        // setInterval(() => { /* ... */ }, 30000);
+    
+</script>

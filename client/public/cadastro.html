@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Rota de Ataque Questões</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1b1b1b;
+            color: #f2f2f2;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background-color: rgba(27, 27, 27, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 2px solid #c1121f;
+            transition: all 0.3s ease;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #c1121f;
+            text-decoration: none;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: #f2f2f2;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav a:hover {
+            color: #c1121f;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            min-height: calc(100vh - 160px);
+            padding: 2rem 0;
+        }
+
+        /* Cadastro Form */
+        .cadastro-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #2a2a2a;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .cadastro-container h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #f2f2f2;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #f2f2f2;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background-color: #1b1b1b;
+            color: #f2f2f2;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #c1121f;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #c1121f;
+            color: #f2f2f2;
+            text-decoration: none;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #a0101a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(193, 18, 31, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid #c1121f;
+            color: #c1121f;
+        }
+
+        .btn-secondary:hover {
+            background-color: #c1121f;
+            color: #f2f2f2;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .message.success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .message.error {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .cadastro-links {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .cadastro-links a {
+            color: #c1121f;
+            text-decoration: none;
+        }
+
+        .cadastro-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #0f0f0f;
+            padding: 2rem 0;
+            text-align: center;
+            border-top: 1px solid #333;
+        }
+
+        .terms {
+            background-color: #1b1b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            border-left: 4px solid #007bff;
+        }
+
+        .terms h4 {
+            color: #007bff;
+            margin-bottom: 0.5rem;
+        }
+
+        .terms p {
+            color: #ccc;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Rota de Ataque Questões</div>
+                <nav class="nav">
+                    <a href="/">Início</a>
+                    <a href="/questoes">Questões</a>
+                    <a href="/ranking">Ranking</a>
+                    <a href="/planos">Planos</a>
+                    <a href="/login">Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="cadastro-container">
+                <h2>📝 Criar Conta</h2>
+                <div id="message"></div>
+                
+                <form id="cadastroForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nome">Nome</label>
+                            <input type="text" id="nome" name="nome" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sobrenome">Sobrenome</label>
+                            <input type="text" id="sobrenome" name="sobrenome" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="senha">Senha</label>
+                        <input type="password" id="senha" name="senha" required minlength="6">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmar_senha">Confirmar Senha</label>
+                        <input type="password" id="confirmar_senha" name="confirmar_senha" required minlength="6">
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="aceitar_termos" name="aceitar_termos" required>
+                        <label for="aceitar_termos">Li e aceito os <a href="#" style="color: #c1121f;">Termos de Uso</a> e <a href="#" style="color: #c1121f;">Política de Privacidade</a></label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="receber_emails" name="receber_emails">
+                        <label for="receber_emails">Desejo receber e-mails com novidades e dicas de estudo</label>
+                    </div>
+                    
+                    <button type="submit" class="btn">Criar Conta</button>
+                </form>
+                
+                <div class="cadastro-links">
+                    <p>Já tem uma conta? <a href="/login">Faça login</a></p>
+                </div>
+                
+                <div class="terms">
+                    <h4>ℹ️ Informações Importantes</h4>
+                    <p>• Sua conta será criada no plano gratuito</p>
+                    <p>• Você poderá fazer upgrade para Premium a qualquer momento</p>
+                    <p>• Seus dados estão seguros e não serão compartilhados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Rota de Ataque Questões. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simulação de cadastro
+        document.getElementById('cadastroForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nome = document.getElementById('nome').value;
+            const sobrenome = document.getElementById('sobrenome').value;
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmar_senha').value;
+            const aceitarTermos = document.getElementById('aceitar_termos').checked;
+            const messageDiv = document.getElementById('message');
+            
+            // Validações
+            if (senha !== confirmarSenha) {
+                messageDiv.innerHTML = '<div class="message error">❌ As senhas não coincidem.</div>';
+                return;
+            }
+            
+            if (senha.length < 6) {
+                messageDiv.innerHTML = '<div class="message error">❌ A senha deve ter pelo menos 6 caracteres.</div>';
+                return;
+            }
+            
+            if (!aceitarTermos) {
+                messageDiv.innerHTML = '<div class="message error">❌ Você deve aceitar os termos de uso.</div>';
+                return;
+            }
+            
+            // Simular cadastro bem-sucedido
+            messageDiv.innerHTML = '<div class="message success">✅ Conta criada com sucesso! Redirecionando para login...</div>';
+            
+            // Simular redirecionamento
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        });
+        
+        // Validação de senha em tempo real
+        document.getElementById('confirmar_senha').addEventListener('input', function() {
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = this.value;
+            
+            if (confirmarSenha && senha !== confirmarSenha) {
+                this.style.borderColor = '#dc3545';
+            } else {
+                this.style.borderColor = '#333';
+            }
+        });
+    </script>
+</body>
+</html>

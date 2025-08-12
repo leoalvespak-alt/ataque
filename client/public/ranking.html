@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking - Rota de Ataque Questões</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
+    <link rel="mask-icon" href="favicon.svg" color="#c1121f">
+    <script src="utils.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1b1b1b;
+            color: #f2f2f2;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background-color: rgba(27, 27, 27, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(242, 242, 242, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #c1121f;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: #f2f2f2;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav a:hover {
+            color: #c1121f;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #f2f2f2;
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+            color: #ccc;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Ranking Stats */
+        .ranking-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background-color: #2a2a2a;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(242, 242, 242, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #c1121f;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #ccc;
+        }
+
+        /* Ranking Table */
+        .ranking-container {
+            background-color: #2a2a2a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .ranking-header {
+            background-color: #c1121f;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ranking-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f2f2f2;
+        }
+
+        .ranking-filters {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(242, 242, 242, 0.2);
+            border-radius: 6px;
+            background-color: rgba(242, 242, 242, 0.1);
+            color: #f2f2f2;
+            font-size: 0.9rem;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #f2f2f2;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ranking-table th {
+            background-color: #333;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #f2f2f2;
+            border-bottom: 1px solid #444;
+        }
+
+        .ranking-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #444;
+            color: #f2f2f2;
+        }
+
+        .ranking-table tr:hover {
+            background-color: #333;
+        }
+
+        .position {
+            font-weight: 700;
+            font-size: 1.2rem;
+            text-align: center;
+            width: 60px;
+        }
+
+        .position-1 {
+            color: #ffd700;
+        }
+
+        .position-2 {
+            color: #c0c0c0;
+        }
+
+        .position-3 {
+            color: #cd7f32;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #c1121f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #f2f2f2;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #f2f2f2;
+        }
+
+        .user-email {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .xp-amount {
+            font-weight: 700;
+            color: #28a745;
+            text-align: center;
+        }
+
+        .questions-answered {
+            text-align: center;
+            color: #17a2b8;
+        }
+
+        .user-status {
+            text-align: center;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-premium {
+            background-color: #28a745;
+            color: #f2f2f2;
+        }
+
+        .status-gratuito {
+            background-color: #6c757d;
+            color: #f2f2f2;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #444;
+            background-color: #333;
+            color: #f2f2f2;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover {
+            background-color: #c1121f;
+            border-color: #c1121f;
+        }
+
+        .pagination button.active {
+            background-color: #c1121f;
+            border-color: #c1121f;
+        }
+
+        .pagination button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #ccc;
+        }
+
+        .loading-spinner {
+            border: 3px solid #333;
+            border-top: 3px solid #c1121f;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #111111;
+            padding: 2rem 0;
+            text-align: center;
+            border-top: 1px solid #333;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .ranking-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .ranking-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .ranking-filters {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .filter-select {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .ranking-table {
+                font-size: 0.9rem;
+            }
+
+            .ranking-table th,
+            .ranking-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .user-avatar {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Rota de Ataque Questões</div>
+                <nav class="nav">
+                    <a href="/">Início</a>
+                    <a href="/questoes">Questões</a>
+                    <a href="/ranking">Ranking</a>
+                    <a href="/planos">Planos</a>
+                    <a href="/perfil">Perfil</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">🏆 Ranking dos Alunos</h1>
+                <p class="page-subtitle">Veja quem está se destacando na plataforma e acompanhe seu progresso!</p>
+            </div>
+
+            <!-- Ranking Stats -->
+            <div class="ranking-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAlunos">0</div>
+                    <div class="stat-label">Total de Alunos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalXP">0</div>
+                    <div class="stat-label">XP Total Conquistado</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="mediaXP">0</div>
+                    <div class="stat-label">XP Médio por Aluno</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="questoesRespondidas">0</div>
+                    <div class="stat-label">Questões Respondidas</div>
+                </div>
+            </div>
+
+            <!-- Ranking Table -->
+            <div class="ranking-container">
+                <div class="ranking-header">
+                    <h2 class="ranking-title">Top Alunos</h2>
+                    <div class="ranking-filters">
+                        <select class="filter-select" id="filterPeriod">
+                            <option value="all">Todos os Períodos</option>
+                            <option value="week">Esta Semana</option>
+                            <option value="month">Este Mês</option>
+                            <option value="year">Este Ano</option>
+                        </select>
+                        <select class="filter-select" id="filterStatus">
+                            <option value="all">Todos os Status</option>
+                            <option value="premium">Premium</option>
+                            <option value="gratuito">Gratuito</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="rankingContent">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Carregando ranking...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Rota de Ataque Questões. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Estado da aplicação
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentFilters = {
+            period: 'all',
+            status: 'all'
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarRanking();
+            carregarEstatisticas();
+            
+            // Configurar listeners de filtros
+            document.getElementById('filterPeriod').addEventListener('change', function() {
+                currentFilters.period = this.value;
+                currentPage = 1;
+                carregarRanking();
+            });
+            
+            document.getElementById('filterStatus').addEventListener('change', function() {
+                currentFilters.status = this.value;
+                currentPage = 1;
+                carregarRanking();
+            });
+        });
+
+        // Função para carregar estatísticas do ranking
+        async function carregarEstatisticas() {
+            try {
+                const response = await fetch('http://localhost:3002/api/ranking/stats');
+                if (!response.ok) throw new Error('Erro ao carregar estatísticas');
+                
+                const data = await response.json();
+                
+                document.getElementById('totalAlunos').textContent = data.totalAlunos || 0;
+                document.getElementById('totalXP').textContent = data.totalXP || 0;
+                document.getElementById('mediaXP').textContent = Math.round(data.mediaXP || 0);
+                document.getElementById('questoesRespondidas').textContent = data.questoesRespondidas || 0;
+                
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Função para carregar ranking
+        async function carregarRanking() {
+            try {
+                mostrarCarregando(true);
+                
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: 20,
+                    period: currentFilters.period,
+                    status: currentFilters.status
+                });
+                
+                const response = await fetch(`http://localhost:3002/api/ranking?${params.toString()}`);
+                if (!response.ok) throw new Error('Erro ao carregar ranking');
+                
+                const data = await response.json();
+                
+                renderizarRanking(data.alunos);
+                renderizarPaginacao(data.pagination);
+                
+            } catch (error) {
+                console.error('Erro ao carregar ranking:', error);
+                mostrarErro('Erro ao carregar ranking. Tente novamente.');
+            } finally {
+                mostrarCarregando(false);
+            }
+        }
+
+        // Função para renderizar ranking
+        function renderizarRanking(alunos) {
+            const container = document.getElementById('rankingContent');
+            
+            if (!alunos || alunos.length === 0) {
+                container.innerHTML = `
+                    <div class="loading">
+                        <p>Nenhum aluno encontrado.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <table class="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>Posição</th>
+                            <th>Aluno</th>
+                            <th>XP</th>
+                            <th>Questões</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            alunos.forEach((aluno, index) => {
+                const position = (currentPage - 1) * 20 + index + 1;
+                const positionClass = position <= 3 ? `position-${position}` : '';
+                const initials = aluno.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                
+                html += `
+                    <tr>
+                        <td class="position ${positionClass}">${position}</td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">${initials}</div>
+                                <div class="user-details">
+                                    <div class="user-name">${aluno.nome}</div>
+                                    <div class="user-email">${aluno.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="xp-amount">${aluno.xp} XP</td>
+                        <td class="questions-answered">${aluno.questoes_respondidas}</td>
+                        <td class="user-status">
+                            <span class="status-badge status-${aluno.status}">
+                                ${aluno.status === 'premium' ? 'Premium' : 'Gratuito'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // Função para renderizar paginação
+        function renderizarPaginacao(pagination) {
+            const container = document.getElementById('pagination');
+            
+            if (!pagination || pagination.totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Botão anterior
+            html += `
+                <button onclick="mudarPagina(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    ← Anterior
+                </button>
+            `;
+            
+            // Páginas
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(pagination.totalPages, currentPage + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `
+                    <button onclick="mudarPagina(${i})" class="${i === currentPage ? 'active' : ''}">
+                        ${i}
+                    </button>
+                `;
+            }
+            
+            // Botão próximo
+            html += `
+                <button onclick="mudarPagina(${currentPage + 1})" ${currentPage === pagination.totalPages ? 'disabled' : ''}>
+                    Próximo →
+                </button>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // Função para mudar página
+        function mudarPagina(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            carregarRanking();
+        }
+
+        // Função para mostrar carregamento
+        function mostrarCarregando(mostrar) {
+            const container = document.getElementById('rankingContent');
+            if (mostrar) {
+                container.innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Carregando ranking...</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Função para mostrar erro
+        function mostrarErro(mensagem) {
+            const container = document.getElementById('rankingContent');
+            container.innerHTML = `
+                <div class="loading">
+                    <p style="color: #dc3545;">${mensagem}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

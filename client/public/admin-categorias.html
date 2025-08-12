@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Categorias - Rota de Ataque Questões</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1b1b1b;
+            color: #f2f2f2;
+        }
+        .navbar {
+            background-color: #c1121f !important;
+        }
+        .card {
+            background-color: #2d2d2d;
+            border: none;
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #c1121f;
+            border-color: #c1121f;
+        }
+        .btn-primary:hover {
+            background-color: #a30f1a;
+            border-color: #a30f1a;
+        }
+        .table {
+            color: #f2f2f2;
+        }
+        .modal-content {
+            background-color: #2d2d2d;
+            color: #f2f2f2;
+        }
+        .modal-header {
+            border-bottom-color: #3d3d3d;
+        }
+        .modal-footer {
+            border-top-color: #3d3d3d;
+        }
+        .form-control, .form-select {
+            background-color: #3d3d3d;
+            border-color: #4d4d4d;
+            color: #f2f2f2;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #3d3d3d;
+            border-color: #c1121f;
+            color: #f2f2f2;
+            box-shadow: 0 0 0 0.25rem rgba(193, 18, 31, 0.25);
+        }
+        .nav-tabs .nav-link {
+            color: #f2f2f2;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #2d2d2d;
+            color: #f2f2f2;
+            border-color: #3d3d3d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin">Painel Administrativo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-questoes.html">
+                            <i class="bi bi-question-circle"></i> Questões
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="admin-categorias.html">
+                            <i class="bi bi-tags"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-usuarios.html">
+                            <i class="bi bi-people"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-planos.html">
+                            <i class="bi bi-credit-card"></i> Planos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-comentarios.html">
+                            <i class="bi bi-chat-dots"></i> Comentários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="sair()">Sair</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="mb-4">Gerenciar Categorias</h2>
+        
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" href="#" onclick="mostrarDisciplinas()">Disciplinas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="mostrarAssuntos()">Assuntos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="mostrarBancas()">Bancas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="mostrarOrgaos()">Órgãos</a>
+            </li>
+        </ul>
+
+        <!-- Disciplinas -->
+        <div id="disciplinas" class="categoria-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Disciplinas</h3>
+                <button class="btn btn-primary" onclick="abrirModalNovaDisciplina()">Nova Disciplina</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaDisciplinas">
+                        <tr>
+                            <td colspan="3">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Assuntos -->
+        <div id="assuntos" class="categoria-section" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Assuntos</h3>
+                <button class="btn btn-primary" onclick="abrirModalNovoAssunto()">Novo Assunto</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Disciplina</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaAssuntos">
+                        <tr>
+                            <td colspan="4">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bancas -->
+        <div id="bancas" class="categoria-section" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Bancas</h3>
+                <button class="btn btn-primary" onclick="abrirModalNovaBanca()">Nova Banca</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaBancas">
+                        <tr>
+                            <td colspan="3">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Órgãos -->
+        <div id="orgaos" class="categoria-section" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Órgãos</h3>
+                <button class="btn btn-primary" onclick="abrirModalNovoOrgao()">Novo Órgão</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaOrgaos">
+                        <tr>
+                            <td colspan="3">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Categoria -->
+    <div class="modal fade" id="modalCategoria" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCategoriaTitulo">Nova Categoria</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCategoria">
+                        <input type="hidden" id="categoriaId">
+                        <input type="hidden" id="categoriaTipo">
+                        <div class="mb-3">
+                            <label for="categoriaNome" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="categoriaNome" required>
+                        </div>
+                        <div class="mb-3" id="disciplinaPaiContainer" style="display: none;">
+                            <label for="disciplinaPai" class="form-label">Disciplina</label>
+                            <select class="form-select" id="disciplinaPai">
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarCategoria()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="admin-scripts.html"></script>
+    <script>
+        // Função para sair
+        function sair() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticação
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Carregar disciplinas por padrão
+            mostrarDisciplinas();
+        });
+    </script>
+</body>
+</html>

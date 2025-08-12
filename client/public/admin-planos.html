@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Planos - Rota de Ataque Questões</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1b1b1b;
+            color: #f2f2f2;
+        }
+        .navbar {
+            background-color: #c1121f !important;
+        }
+        .card {
+            background-color: #2d2d2d;
+            border: none;
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #c1121f;
+            border-color: #c1121f;
+        }
+        .btn-primary:hover {
+            background-color: #a30f1a;
+            border-color: #a30f1a;
+        }
+        .table {
+            color: #f2f2f2;
+        }
+        .modal-content {
+            background-color: #2d2d2d;
+            color: #f2f2f2;
+        }
+        .modal-header {
+            border-bottom-color: #3d3d3d;
+        }
+        .modal-footer {
+            border-top-color: #3d3d3d;
+        }
+        .form-control, .form-select {
+            background-color: #3d3d3d;
+            border-color: #4d4d4d;
+            color: #f2f2f2;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #3d3d3d;
+            border-color: #c1121f;
+            color: #f2f2f2;
+            box-shadow: 0 0 0 0.25rem rgba(193, 18, 31, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin">Painel Administrativo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-questoes.html">
+                            <i class="bi bi-question-circle"></i> Questões
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-categorias.html">
+                            <i class="bi bi-tags"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-usuarios.html">
+                            <i class="bi bi-people"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="admin-planos.html">
+                            <i class="bi bi-credit-card"></i> Planos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-comentarios.html">
+                            <i class="bi bi-chat-dots"></i> Comentários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="sair()">Sair</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Gerenciar Planos</h2>
+            <button class="btn btn-primary" onclick="abrirModalNovoPlano()">Novo Plano</button>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Recorrência</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaPlanos">
+                    <tr>
+                        <td colspan="6">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Plano -->
+    <div class="modal fade" id="modalPlano" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPlanoTitulo">Novo Plano</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formPlano">
+                        <input type="hidden" id="planoId">
+                        <div class="mb-3">
+                            <label for="planoNome" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="planoNome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="planoPreco" class="form-label">Preço (R$)</label>
+                            <input type="number" class="form-control" id="planoPreco" required min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="planoRecorrencia" class="form-label">Recorrência</label>
+                            <select class="form-select" id="planoRecorrencia" required>
+                                <option value="">Selecione...</option>
+                                <option value="mensal">Mensal</option>
+                                <option value="anual">Anual</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarPlano()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="admin-scripts.html"></script>
+    <script>
+        // Função para sair
+        function sair() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticação
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Carregar planos
+            carregarPlanos();
+        });
+    </script>
+</body>
+</html>

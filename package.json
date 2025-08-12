@@ -1,0 +1,19 @@
+{
+  "name": "rota-de-ataque-questoes",
+  "version": "1.0.0",
+  "description": "Plataforma de estudo para concursos públicos",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": ["concursos", "questões", "estudo", "plataforma"],
+  "author": "Rota de Ataque Questões",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
