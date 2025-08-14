@@ -68,17 +68,15 @@ const Estatisticas: React.FC = () => {
   const [topicosDificuldade, setTopicosDificuldade] = useState<TopicoDificuldade[]>([]);
   const [evolucaoTempo, setEvolucaoTempo] = useState<EvolucaoTempo[]>([]);
   const [disciplinaSelecionada, setDisciplinaSelecionada] = useState<number | null>(null);
-  const [assuntoSelecionado, setAssuntoSelecionado] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<'geral' | 'disciplina' | 'assunto'>('geral');
+  const [viewMode, setViewMode] = useState<'geral' | 'assunto'>('geral');
   const [filtroPeriodo, setFiltroPeriodo] = useState<'7d' | '30d' | '90d' | 'custom'>('30d');
   const [filtroTipo, setFiltroTipo] = useState<'todas' | 'objetiva' | 'discursiva'>('todas');
-  const [filtroSituacao, setFiltroSituacao] = useState<'todas' | 'correta' | 'incorreta' | 'revisada'>('todas');
 
   useEffect(() => {
     if (user) {
       loadEstatisticasData();
     }
-  }, [user, filtroPeriodo, filtroTipo, filtroSituacao]);
+  }, [user, filtroPeriodo, filtroTipo]);
 
   useEffect(() => {
     if (disciplinaSelecionada) {
@@ -104,96 +102,240 @@ const Estatisticas: React.FC = () => {
 
   const loadEstatisticasDetalhadas = async () => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_estatisticas_dashboard');
+      // Buscar dados reais do usuário
+      const { data: userData, error: userError } = await supabase
+        .from('usuarios')
+        .select('xp, questoes_respondidas')
+        .eq('id', user?.id)
+        .single();
 
-      if (error) throw error;
-      setEstatisticas(data);
+      if (userError) throw userError;
+
+      // Buscar respostas do usuário
+      const { data: respostas, error: respostasError } = await supabase
+        .from('respostas_usuarios')
+        .select('acertou, data_resposta')
+        .eq('usuario_id', user?.id);
+
+      if (respostasError) throw respostasError;
+
+      // Calcular estatísticas
+      const total_respostas = respostas?.length || 0;
+      const total_acertos = respostas?.filter(r => r.acertou).length || 0;
+      const total_erros = total_respostas - total_acertos;
+      const percentual_acerto = total_respostas > 0 ? (total_acertos / total_respostas) * 100 : 0;
+
+      // Calcular respostas dos últimos 30 dias
+      const trintaDiasAtras = new Date();
+      trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+      
+      const respostasUltimos30Dias = respostas?.filter(r => 
+        new Date(r.data_resposta) >= trintaDiasAtras
+      ).length || 0;
+      
+      const acertosUltimos30Dias = respostas?.filter(r => 
+        r.acertou && new Date(r.data_resposta) >= trintaDiasAtras
+      ).length || 0;
+      
+      const percentualUltimos30Dias = respostasUltimos30Dias > 0 ? 
+        (acertosUltimos30Dias / respostasUltimos30Dias) * 100 : 0;
+
+      // Calcular streak (dias consecutivos)
+      const streak_atual = await calcularStreak(respostas);
+
+      // Calcular dias de estudo
+      const diasEstudo = await calcularDiasEstudo(respostas);
+
+      const estatisticasData: EstatisticasDetalhadas = {
+        total_respostas,
+        total_acertos,
+        total_erros,
+        percentual_acerto,
+        xp_total: userData?.xp || 0,
+        questoes_respondidas: userData?.questoes_respondidas || 0,
+        respostas_ultimos_30_dias: respostasUltimos30Dias,
+        acertos_ultimos_30_dias: acertosUltimos30Dias,
+        percentual_ultimos_30_dias: percentualUltimos30Dias,
+        streak_atual,
+        dias_estudo: diasEstudo
+      };
+
+      setEstatisticas(estatisticasData);
     } catch (error) {
       console.error('Erro ao carregar estatísticas detalhadas:', error);
+      // Criar dados vazios em caso de erro
+      const estatisticasVazias: EstatisticasDetalhadas = {
+        total_respostas: 0,
+        total_acertos: 0,
+        total_erros: 0,
+        percentual_acerto: 0,
+        xp_total: 0,
+        questoes_respondidas: 0,
+        respostas_ultimos_30_dias: 0,
+        acertos_ultimos_30_dias: 0,
+        percentual_ultimos_30_dias: 0,
+        streak_atual: 0,
+        dias_estudo: 0
+      };
+      setEstatisticas(estatisticasVazias);
     }
+  };
+
+  const calcularStreak = async (respostas: any[]): Promise<number> => {
+    if (!respostas || respostas.length === 0) return 0;
+
+    // Ordenar respostas por data
+    const respostasOrdenadas = respostas
+      .map(r => new Date(r.data_resposta))
+      .sort((a, b) => b.getTime() - a.getTime());
+
+    let streak = 0;
+    let dataAtual = new Date();
+    dataAtual.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 365; i++) { // Verificar até 1 ano atrás
+      const dataVerificar = new Date(dataAtual);
+      dataVerificar.setDate(dataVerificar.getDate() - i);
+      
+      const temRespostaNesteDia = respostasOrdenadas.some(data => {
+        const dataResposta = new Date(data);
+        dataResposta.setHours(0, 0, 0, 0);
+        return dataResposta.getTime() === dataVerificar.getTime();
+      });
+
+      if (temRespostaNesteDia) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  };
+
+  const calcularDiasEstudo = async (respostas: any[]): Promise<number> => {
+    if (!respostas || respostas.length === 0) return 0;
+
+    const diasUnicos = new Set();
+    respostas.forEach(r => {
+      const data = new Date(r.data_resposta);
+      const dataString = data.toISOString().split('T')[0];
+      diasUnicos.add(dataString);
+    });
+
+    return diasUnicos.size;
   };
 
   const loadEstatisticasDisciplinas = async () => {
     try {
       const { data, error } = await supabase
-        .rpc('get_estatisticas_por_disciplina');
+        .from('respostas_usuarios')
+        .select(`
+          acertou,
+          questoes!inner(
+            disciplina_id,
+            disciplinas!inner(
+              id,
+              nome
+            )
+          )
+        `)
+        .eq('usuario_id', user?.id);
 
       if (error) throw error;
-      setEstatisticasDisciplinas(data || []);
+
+      // Agrupar por disciplina
+      const disciplinasMap = new Map();
+      
+      data?.forEach((resposta: any) => {
+        const disciplinaId = resposta.questoes.disciplinas.id;
+        const disciplinaNome = resposta.questoes.disciplinas.nome;
+        
+        if (!disciplinasMap.has(disciplinaId)) {
+          disciplinasMap.set(disciplinaId, {
+            disciplina_id: disciplinaId,
+            disciplina_nome: disciplinaNome,
+            total_questoes: 0,
+            total_acertos: 0
+          });
+        }
+        
+        const disciplina = disciplinasMap.get(disciplinaId);
+        disciplina.total_questoes++;
+        if (resposta.acertou) {
+          disciplina.total_acertos++;
+        }
+      });
+
+      const disciplinasArray = Array.from(disciplinasMap.values())
+        .map(disciplina => ({
+          ...disciplina,
+          percentual_acerto: (disciplina.total_acertos / disciplina.total_questoes) * 100
+        }))
+        .sort((a, b) => b.total_questoes - a.total_questoes);
+
+      setEstatisticasDisciplinas(disciplinasArray);
     } catch (error) {
       console.error('Erro ao carregar estatísticas por disciplina:', error);
+      setEstatisticasDisciplinas([]);
     }
   };
 
   const loadEstatisticasAssuntos = async (disciplinaId: number) => {
     try {
       const { data, error } = await supabase
-        .rpc('get_estatisticas_por_assunto', { 
-          disciplina_id: disciplinaId,
-          user_id: user?.id 
-        });
-
-      if (error) {
-        console.error('Erro na função RPC, tentando query direta:', error);
-        
-        const { data: directData, error: directError } = await supabase
-          .from('respostas_usuarios')
-          .select(`
-            acertou,
-            questoes!inner(
-              assunto_id,
-              assuntos!inner(
+        .from('respostas_usuarios')
+        .select(`
+          acertou,
+          questoes!inner(
+            assunto_id,
+            assuntos!inner(
+              id,
+              nome,
+              disciplinas!inner(
                 id,
-                nome,
-                disciplinas!inner(
-                  id,
-                  nome
-                )
+                nome
               )
             )
-          `)
-          .eq('usuario_id', user?.id)
-          .eq('questoes.assuntos.disciplinas.id', disciplinaId)
-          .eq('questoes.ativo', true);
+          )
+        `)
+        .eq('usuario_id', user?.id)
+        .eq('questoes.disciplinas.id', disciplinaId);
 
-        if (directError) throw directError;
+      if (error) throw error;
 
-        const assuntosMap = new Map();
+      const assuntosMap = new Map();
+      
+      data?.forEach((resposta: any) => {
+        const assuntoId = resposta.questoes.assuntos.id;
+        const assuntoNome = resposta.questoes.assuntos.nome;
+        const disciplinaNome = resposta.questoes.assuntos.disciplinas.nome;
         
-        directData?.forEach((resposta: any) => {
-          const assuntoId = resposta.questoes.assuntos.id;
-          const assuntoNome = resposta.questoes.assuntos.nome;
-          const disciplinaNome = resposta.questoes.assuntos.disciplinas.nome;
-          
-          if (!assuntosMap.has(assuntoId)) {
-            assuntosMap.set(assuntoId, {
-              assunto_id: assuntoId,
-              assunto_nome: assuntoNome,
-              disciplina_nome: disciplinaNome,
-              total_questoes: 0,
-              total_acertos: 0
-            });
-          }
-          
-          const assunto = assuntosMap.get(assuntoId);
-          assunto.total_questoes++;
-          if (resposta.acertou) {
-            assunto.total_acertos++;
-          }
-        });
+        if (!assuntosMap.has(assuntoId)) {
+          assuntosMap.set(assuntoId, {
+            assunto_id: assuntoId,
+            assunto_nome: assuntoNome,
+            disciplina_nome: disciplinaNome,
+            total_questoes: 0,
+            total_acertos: 0
+          });
+        }
+        
+        const assunto = assuntosMap.get(assuntoId);
+        assunto.total_questoes++;
+        if (resposta.acertou) {
+          assunto.total_acertos++;
+        }
+      });
 
-        const assuntosArray = Array.from(assuntosMap.values())
-          .map(assunto => ({
-            ...assunto,
-            percentual_acerto: (assunto.total_acertos / assunto.total_questoes) * 100
-          }))
-          .sort((a, b) => b.total_questoes - a.total_questoes);
+      const assuntosArray = Array.from(assuntosMap.values())
+        .map(assunto => ({
+          ...assunto,
+          percentual_acerto: (assunto.total_acertos / assunto.total_questoes) * 100
+        }))
+        .sort((a, b) => b.total_questoes - a.total_questoes);
 
-        setEstatisticasAssuntos(assuntosArray);
-      } else {
-        setEstatisticasAssuntos(data || []);
-      }
+      setEstatisticasAssuntos(assuntosArray);
     } catch (error) {
       console.error('Erro ao carregar estatísticas por assunto:', error);
       setEstatisticasAssuntos([]);
@@ -218,8 +360,7 @@ const Estatisticas: React.FC = () => {
             )
           )
         `)
-        .eq('usuario_id', user?.id)
-        .eq('questoes.ativo', true);
+        .eq('usuario_id', user?.id);
 
       if (error) throw error;
 
@@ -259,42 +400,71 @@ const Estatisticas: React.FC = () => {
       setTopicosDificuldade(topicosArray);
     } catch (error) {
       console.error('Erro ao carregar tópicos de dificuldade:', error);
+      setTopicosDificuldade([]);
     }
   };
 
   const loadEvolucaoTempo = async () => {
     try {
-      // Simular dados de evolução temporal (em produção, isso viria do backend)
-      const hoje = new Date();
-      const dados = [];
+      // Buscar dados reais de evolução temporal
+      const { data: respostas, error } = await supabase
+        .from('respostas_usuarios')
+        .select('acertou, data_resposta')
+        .eq('usuario_id', user?.id)
+        .gte('data_resposta', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .order('data_resposta', { ascending: true });
+
+      if (error) throw error;
+
+      // Agrupar por dia
+      const dadosPorDia = new Map();
       
-      for (let i = 29; i >= 0; i--) {
-        const data = new Date(hoje);
-        data.setDate(data.getDate() - i);
+      respostas?.forEach(resposta => {
+        const data = new Date(resposta.data_resposta);
+        const dataString = data.toISOString().split('T')[0];
         
-        const acertos = Math.floor(Math.random() * 10) + 1;
-        const total = acertos + Math.floor(Math.random() * 5);
+        if (!dadosPorDia.has(dataString)) {
+          dadosPorDia.set(dataString, { acertos: 0, total: 0 });
+        }
         
-        dados.push({
-          data: data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          acertos,
-          total,
-          percentual: total > 0 ? (acertos / total) * 100 : 0
-        });
-      }
-      
-      setEvolucaoTempo(dados);
+        const dia = dadosPorDia.get(dataString);
+        dia.total++;
+        if (resposta.acertou) {
+          dia.acertos++;
+        }
+      });
+
+      // Converter para array e calcular percentuais
+      const evolucaoArray = Array.from(dadosPorDia.entries())
+        .map(([data, stats]: [string, any]) => ({
+          data: new Date(data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+          acertos: stats.acertos,
+          total: stats.total,
+          percentual: stats.total > 0 ? (stats.acertos / stats.total) * 100 : 0
+        }))
+        .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+
+      setEvolucaoTempo(evolucaoArray);
     } catch (error) {
       console.error('Erro ao carregar evolução temporal:', error);
+      setEvolucaoTempo([]);
     }
   };
 
-  const renderCircularProgress = (percentual: number, size: number = 120, color: string = '#8b0000') => {
+  const renderCircularProgress = (percentual: number, size: number = 120) => {
     const safePercentual = isNaN(percentual) ? 0 : Math.max(0, Math.min(percentual, 100));
     const radius = size / 2 - 10;
     const circumference = 2 * Math.PI * radius;
     const strokeDasharray = circumference;
     const strokeDashoffset = circumference - (safePercentual / 100) * circumference;
+
+    // Definir cor baseada no percentual
+    let color = '#ef4444'; // vermelho (menor que 50%)
+    if (safePercentual >= 70) {
+      color = '#22c55e'; // verde (70% ou mais)
+    } else if (safePercentual >= 50) {
+      color = '#f59e0b'; // amarelo (50% a 69%)
+    }
 
     return (
       <div className="relative inline-flex items-center justify-center">
@@ -402,16 +572,6 @@ const Estatisticas: React.FC = () => {
                 Visão Geral
               </button>
               <button
-                onClick={() => setViewMode('disciplina')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  viewMode === 'disciplina'
-                    ? 'bg-[#8b0000] text-white'
-                    : 'bg-[#333333] text-[#f2f2f2] hover:bg-[#444444]'
-                }`}
-              >
-                Por Disciplina
-              </button>
-              <button
                 onClick={() => setViewMode('assunto')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   viewMode === 'assunto'
@@ -456,62 +616,89 @@ const Estatisticas: React.FC = () => {
         </div>
 
         {/* Conteúdo baseado no modo de visualização */}
-        {viewMode === 'geral' && estatisticas && (
+        {viewMode === 'geral' && (
           <div className="space-y-8">
+            {/* Percentual Geral em Círculo */}
+            {estatisticas && (
+              <div className="bg-[#242424] rounded-lg p-8 border border-[#333333] text-center">
+                <h2 className="text-2xl font-semibold mb-6 text-[#f2f2f2]">Percentual Geral de Acertos</h2>
+                <div className="flex justify-center">
+                  {renderCircularProgress(estatisticas.percentual_acerto, 200)}
+                </div>
+              </div>
+            )}
+
             {/* Cards Principais */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:border-[#8b0000] transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[#f2f2f2]/70 text-sm">Total de Questões</p>
-                    <p className="text-3xl font-bold text-[#f2f2f2]">{estatisticas.total_respostas}</p>
+            {estatisticas && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:border-[#8b0000] transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[#f2f2f2]/70 text-sm">Total de Questões</p>
+                      <p className="text-3xl font-bold text-[#f2f2f2]">{estatisticas.total_respostas}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-[#8b0000] rounded-lg flex items-center justify-center">
+                      <i className="fas fa-question-circle text-white text-xl"></i>
+                    </div>
                   </div>
-                  <div className="w-12 h-12 bg-[#8b0000] rounded-lg flex items-center justify-center">
-                    <i className="fas fa-question-circle text-white text-xl"></i>
+                </div>
+
+                <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:border-[#8b0000] transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[#f2f2f2]/70 text-sm">XP Total</p>
+                      <p className="text-3xl font-bold text-[#f2f2f2]">{estatisticas.xp_total}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-[#c1121f] rounded-lg flex items-center justify-center">
+                      <i className="fas fa-star text-white text-xl"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:border-[#8b0000] transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[#f2f2f2]/70 text-sm">Dias Consecutivos</p>
+                      <p className="text-3xl font-bold text-[#f2f2f2]">{estatisticas.streak_atual}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <i className="fas fa-fire text-white text-xl"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:border-[#8b0000] transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[#f2f2f2]/70 text-sm">Últimos 30 Dias</p>
+                      <p className="text-3xl font-bold text-green-400">{estatisticas.respostas_ultimos_30_dias}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                      <i className="fas fa-calendar text-white text-xl"></i>
+                    </div>
                   </div>
                 </div>
               </div>
+            )}
 
-              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:border-[#8b0000] transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[#f2f2f2]/70 text-sm">Taxa de Acerto</p>
-                    <p className="text-3xl font-bold text-green-400">{Math.round(estatisticas.percentual_acerto)}%</p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                    <i className="fas fa-chart-line text-white text-xl"></i>
-                  </div>
-                </div>
+            {/* Gráfico de Barras por Disciplina */}
+            {estatisticasDisciplinas.length > 0 && (
+              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
+                <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">Desempenho por Disciplina</h2>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={estatisticasDisciplinas}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
+                    <XAxis dataKey="disciplina_nome" stroke="#f2f2f2" />
+                    <YAxis stroke="#f2f2f2" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="percentual_acerto" fill="#8b0000" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
+            )}
 
-              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:border-[#8b0000] transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[#f2f2f2]/70 text-sm">XP Total</p>
-                    <p className="text-3xl font-bold text-[#f2f2f2]">{estatisticas.xp_total}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-[#c1121f] rounded-lg flex items-center justify-center">
-                    <i className="fas fa-star text-white text-xl"></i>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:border-[#8b0000] transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[#f2f2f2]/70 text-sm">Dias Consecutivos</p>
-                    <p className="text-3xl font-bold text-[#f2f2f2]">{estatisticas.streak_atual}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <i className="fas fa-fire text-white text-xl"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Gráficos Principais */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Evolução Temporal */}
+            {/* Evolução Temporal */}
+            {evolucaoTempo.length > 0 && (
               <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
                 <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">Evolução de Desempenho</h2>
                 <ResponsiveContainer width="100%" height={300}>
@@ -530,274 +717,210 @@ const Estatisticas: React.FC = () => {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-
-              {/* Distribuição por Disciplina */}
-              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
-                <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">Distribuição por Disciplina</h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={estatisticasDisciplinas}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ disciplina_nome, percentual_acerto }) => `${disciplina_nome}: ${Math.round(percentual_acerto)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="total_questoes"
-                    >
-                      {estatisticasDisciplinas.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Comparativo de Disciplinas */}
-            <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
-              <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">Comparativo por Disciplina</h2>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={estatisticasDisciplinas}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
-                  <XAxis dataKey="disciplina_nome" stroke="#f2f2f2" />
-                  <YAxis stroke="#f2f2f2" />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="percentual_acerto" fill="#8b0000" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            )}
 
             {/* Top 5 Tópicos com Maior Dificuldade */}
-            <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
-              <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">Top 5 Tópicos com Maior Dificuldade</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {topicosDificuldade.map((topico, index) => (
-                  <div key={topico.assunto_id} className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333] hover:border-red-500 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                          {index + 1}
+            {topicosDificuldade.length > 0 && (
+              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
+                <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">Top 5 Tópicos com Maior Dificuldade</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {topicosDificuldade.map((topico, index) => (
+                    <div key={topico.assunto_id} className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333] hover:border-red-500 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-[#f2f2f2] text-sm">{topico.assunto_nome}</h3>
+                            <p className="text-xs text-[#f2f2f2]/70">{topico.disciplina_nome}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-[#f2f2f2] text-sm">{topico.assunto_nome}</h3>
-                          <p className="text-xs text-[#f2f2f2]/70">{topico.disciplina_nome}</p>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-red-400">
+                            {Math.round(topico.percentual_erro)}%
+                          </div>
+                          <div className="text-xs text-[#f2f2f2]/70">
+                            {topico.total_erros}/{topico.total_questoes} erros
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-red-400">
-                          {Math.round(topico.percentual_erro)}%
-                        </div>
-                        <div className="text-xs text-[#f2f2f2]/70">
-                          {topico.total_erros}/{topico.total_questoes} erros
-                        </div>
-                      </div>
-                    </div>
-                    <div className="w-full bg-[#333333] rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-500"
-                        style={{ 
-                          width: `${Math.min(topico.percentual_erro, 100)}%`, 
-                          backgroundColor: '#ef4444' 
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Insights e Recomendações */}
-            <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
-              <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">Insights e Recomendações</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333]">
-                  <h3 className="font-semibold text-[#f2f2f2] mb-3 flex items-center gap-2">
-                    <i className="fas fa-chart-line text-[#8b0000]"></i>
-                    Performance Geral
-                  </h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-[#f2f2f2]/70">Taxa de Acerto:</span>
-                      <span className="text-[#f2f2f2] font-medium">
-                        {estatisticas.percentual_acerto >= 80 ? '🟢 Excelente' :
-                         estatisticas.percentual_acerto >= 60 ? '🟡 Boa' :
-                         estatisticas.percentual_acerto >= 40 ? '🟠 Regular' : '🔴 Precisa Melhorar'}
-                        ({Math.round(estatisticas.percentual_acerto)}%)
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#f2f2f2]/70">Consistência:</span>
-                      <span className="text-[#f2f2f2] font-medium">
-                        {estatisticas.streak_atual >= 7 ? '🟢 Muito Consistente' :
-                         estatisticas.streak_atual >= 3 ? '🟡 Consistente' : '🟠 Precisa de Regularidade'}
-                        ({estatisticas.streak_atual} dias)
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333]">
-                  <h3 className="font-semibold text-[#f2f2f2] mb-3 flex items-center gap-2">
-                    <i className="fas fa-lightbulb text-[#f59e0b]"></i>
-                    Recomendações
-                  </h3>
-                  <div className="space-y-3 text-sm">
-                    {estatisticas.percentual_acerto < 60 && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-red-400">⚠️</span>
-                        <span className="text-[#f2f2f2]">Foque em revisar conceitos básicos antes de avançar</span>
-                      </div>
-                    )}
-                    {estatisticas.streak_atual < 3 && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-yellow-400">📅</span>
-                        <span className="text-[#f2f2f2]">Estabeleça uma rotina diária de estudos</span>
-                      </div>
-                    )}
-                    {topicosDificuldade.length > 0 && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-blue-400">🎯</span>
-                        <span className="text-[#f2f2f2]">Dedique mais tempo aos tópicos com maior dificuldade</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {viewMode === 'disciplina' && (
-          <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
-            <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">
-              Estatísticas por Disciplina
-              {disciplinaSelecionada && ` - ${disciplines.find(d => d.id === disciplinaSelecionada)?.nome}`}
-            </h2>
-            {estatisticasDisciplinas.length > 0 ? (
-              <div className="space-y-6">
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={
-                    disciplinaSelecionada 
-                      ? estatisticasDisciplinas.filter(e => e.disciplina_id === disciplinaSelecionada)
-                      : estatisticasDisciplinas
-                  }>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
-                    <XAxis dataKey="disciplina_nome" stroke="#f2f2f2" />
-                    <YAxis stroke="#f2f2f2" />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="percentual_acerto" fill="#8b0000" />
-                  </BarChart>
-                </ResponsiveContainer>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(disciplinaSelecionada 
-                    ? estatisticasDisciplinas.filter(e => e.disciplina_id === disciplinaSelecionada)
-                    : estatisticasDisciplinas
-                  ).map((item) => (
-                    <div key={item.disciplina_id} className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333]">
-                      <h3 className="font-semibold text-[#f2f2f2] mb-3">{item.disciplina_nome}</h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-[#f2f2f2]/70">Taxa de Acerto:</span>
-                          <span className="text-[#f2f2f2] font-medium">{Math.round(item.percentual_acerto)}%</span>
-                        </div>
-                        <div className="w-full bg-[#333333] rounded-full h-2">
-                          <div 
-                            className="h-2 rounded-full transition-all duration-500"
-                            style={{ 
-                              width: `${Math.min(item.percentual_acerto, 100)}%`, 
-                              backgroundColor: '#8b0000' 
-                            }}
-                          />
-                        </div>
-                        <div className="text-sm text-[#f2f2f2]/70">
-                          {item.total_acertos}/{item.total_questoes} acertos
-                        </div>
+                      <div className="w-full bg-[#333333] rounded-full h-2">
+                        <div 
+                          className="h-2 rounded-full transition-all duration-500"
+                          style={{ 
+                            width: `${Math.min(topico.percentual_erro, 100)}%`, 
+                            backgroundColor: '#ef4444' 
+                          }}
+                        />
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-8">
+            )}
+
+            {/* Insights e Recomendações */}
+            {estatisticas && (
+              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
+                <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">Insights e Recomendações</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333]">
+                    <h3 className="font-semibold text-[#f2f2f2] mb-3 flex items-center gap-2">
+                      <i className="fas fa-chart-line text-[#8b0000]"></i>
+                      Performance Geral
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-[#f2f2f2]/70">Taxa de Acerto:</span>
+                        <span className="text-[#f2f2f2] font-medium">
+                          {estatisticas.percentual_acerto >= 80 ? '🟢 Excelente' :
+                           estatisticas.percentual_acerto >= 60 ? '🟡 Boa' :
+                           estatisticas.percentual_acerto >= 40 ? '🟠 Regular' : '🔴 Precisa Melhorar'}
+                          ({Math.round(estatisticas.percentual_acerto)}%)
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#f2f2f2]/70">Consistência:</span>
+                        <span className="text-[#f2f2f2] font-medium">
+                          {estatisticas.streak_atual >= 7 ? '�� Muito Consistente' :
+                           estatisticas.streak_atual >= 3 ? '�� Consistente' : '�� Precisa de Regularidade'}
+                          ({estatisticas.streak_atual} dias)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333]">
+                    <h3 className="font-semibold text-[#f2f2f2] mb-3 flex items-center gap-2">
+                      <i className="fas fa-lightbulb text-[#f59e0b]"></i>
+                      Recomendações
+                    </h3>
+                    <div className="space-y-3 text-sm">
+                      {estatisticas.percentual_acerto < 60 && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-red-400">⚠️</span>
+                          <span className="text-[#f2f2f2]">Foque em revisar conceitos básicos antes de avançar</span>
+                        </div>
+                      )}
+                      {estatisticas.streak_atual < 3 && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-yellow-400">📅</span>
+                          <span className="text-[#f2f2f2]">Estabeleça uma rotina diária de estudos</span>
+                        </div>
+                      )}
+                      {topicosDificuldade.length > 0 && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-blue-400">🎯</span>
+                          <span className="text-[#f2f2f2]">Dedique mais tempo aos tópicos com maior dificuldade</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mensagem quando não há dados */}
+            {!estatisticas && !loading && (
+              <div className="bg-[#242424] rounded-lg p-8 border border-[#333333] text-center">
                 <i className="fas fa-chart-bar text-4xl text-[#333333] mb-4"></i>
-                <p className="text-[#f2f2f2]/70">Nenhuma estatística disponível para as disciplinas selecionadas</p>
+                <p className="text-[#f2f2f2]/70 mb-2">Nenhuma estatística disponível</p>
+                <p className="text-sm text-[#f2f2f2]/50">Tente responder algumas questões para ver suas estatísticas</p>
               </div>
             )}
           </div>
         )}
 
-        {viewMode === 'assunto' && disciplinaSelecionada && (
+        {viewMode === 'assunto' && (
           <div className="space-y-6">
+            {/* Seletor de Disciplina */}
             <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
-              <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">
-                Estatísticas por Assunto - {disciplines.find(d => d.id === disciplinaSelecionada)?.nome}
-              </h2>
-              {estatisticasAssuntos.length > 0 ? (
-                <div className="space-y-6">
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={estatisticasAssuntos}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
-                      <XAxis dataKey="assunto_nome" stroke="#f2f2f2" angle={-45} textAnchor="end" height={100} />
-                      <YAxis stroke="#f2f2f2" />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="percentual_acerto" fill="#8b0000" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {estatisticasAssuntos.map((estatistica, index) => (
-                      <div key={estatistica.assunto_id} className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333]">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-8 h-8 bg-[#8b0000] rounded-full flex items-center justify-center text-white font-bold text-sm">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-[#f2f2f2] text-sm">{estatistica.assunto_nome}</h3>
-                            <p className="text-xs text-[#f2f2f2]/70">{estatistica.disciplina_nome}</p>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-[#f2f2f2]/70">Taxa de Acerto:</span>
-                            <span className="text-[#f2f2f2] font-medium">{Math.round(estatistica.percentual_acerto)}%</span>
-                          </div>
-                          <div className="w-full bg-[#333333] rounded-full h-2">
-                            <div 
-                              className="h-2 rounded-full transition-all duration-500"
-                              style={{ 
-                                width: `${Math.min(estatistica.percentual_acerto, 100)}%`, 
-                                backgroundColor: estatistica.percentual_acerto >= 70 ? '#22c55e' : 
-                                               estatistica.percentual_acerto >= 50 ? '#f59e0b' : '#ef4444'
-                              }}
-                            />
-                          </div>
-                          <div className="text-sm text-[#f2f2f2]/70">
-                            {estatistica.total_acertos}/{estatistica.total_questoes} acertos
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <i className="fas fa-chart-bar text-4xl text-[#333333] mb-4"></i>
-                  <p className="text-[#f2f2f2]/70 mb-2">Nenhuma estatística disponível para os assuntos selecionados</p>
-                  <p className="text-sm text-[#f2f2f2]/50">Tente responder algumas questões desta disciplina para ver as estatísticas</p>
-                </div>
-              )}
+              <h2 className="text-xl font-semibold mb-4 text-[#f2f2f2]">Selecione uma Disciplina</h2>
+              <select
+                value={disciplinaSelecionada || ''}
+                onChange={(e) => setDisciplinaSelecionada(e.target.value ? parseInt(e.target.value) : null)}
+                className="bg-[#1b1b1b] border border-[#333333] rounded-lg px-4 py-2 text-[#f2f2f2] focus:border-[#8b0000] focus:outline-none w-full max-w-md"
+              >
+                <option value="">Selecione uma disciplina</option>
+                {disciplines.map(discipline => (
+                  <option key={discipline.id} value={discipline.id}>{discipline.nome}</option>
+                ))}
+              </select>
             </div>
-          </div>
-        )}
 
-        {viewMode === 'assunto' && !disciplinaSelecionada && (
-          <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] text-center">
-            <i className="fas fa-chart-bar text-4xl text-[#333333] mb-4"></i>
-            <p className="text-[#f2f2f2]/70">Selecione uma disciplina para ver as estatísticas por assunto</p>
+            {/* Estatísticas por Assunto */}
+            {disciplinaSelecionada && (
+              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
+                <h2 className="text-xl font-semibold mb-6 text-[#f2f2f2]">
+                  Estatísticas por Assunto - {disciplines.find(d => d.id === disciplinaSelecionada)?.nome}
+                </h2>
+                {estatisticasAssuntos.length > 0 ? (
+                  <div className="space-y-6">
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart data={estatisticasAssuntos}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
+                        <XAxis dataKey="assunto_nome" stroke="#f2f2f2" angle={-45} textAnchor="end" height={100} />
+                        <YAxis stroke="#f2f2f2" />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="percentual_acerto" fill="#8b0000" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {estatisticasAssuntos.map((estatistica, index) => (
+                        <div key={estatistica.assunto_id} className="bg-[#1b1b1b] rounded-lg p-4 border border-[#333333]">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-8 h-8 bg-[#8b0000] rounded-full flex items-center justify-center text-white font-bold text-sm">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-[#f2f2f2] text-sm">{estatistica.assunto_nome}</h3>
+                              <p className="text-xs text-[#f2f2f2]/70">{estatistica.disciplina_nome}</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-[#f2f2f2]/70">Taxa de Acerto:</span>
+                              <span className="text-[#f2f2f2] font-medium">{Math.round(estatistica.percentual_acerto)}%</span>
+                            </div>
+                            <div className="w-full bg-[#333333] rounded-full h-2">
+                              <div 
+                                className="h-2 rounded-full transition-all duration-500"
+                                style={{ 
+                                  width: `${Math.min(estatistica.percentual_acerto, 100)}%`, 
+                                  backgroundColor: estatistica.percentual_acerto >= 70 ? '#22c55e' : 
+                                                 estatistica.percentual_acerto >= 50 ? '#f59e0b' : '#ef4444'
+                                }}
+                              />
+                            </div>
+                            <div className="text-sm text-[#f2f2f2]/70">
+                              {estatistica.total_acertos}/{estatistica.total_questoes} acertos
+                            </div>
+                            <div className="text-sm text-[#f2f2f2]/70">
+                              {estatistica.total_questoes - estatistica.total_acertos} erros
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <i className="fas fa-chart-bar text-4xl text-[#333333] mb-4"></i>
+                    <p className="text-[#f2f2f2]/70 mb-2">Nenhuma estatística disponível para os assuntos selecionados</p>
+                    <p className="text-sm text-[#f2f2f2]/50">Tente responder algumas questões desta disciplina para ver as estatísticas</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!disciplinaSelecionada && (
+              <div className="bg-[#242424] rounded-lg p-6 border border-[#333333] text-center">
+                <i className="fas fa-chart-bar text-4xl text-[#333333] mb-4"></i>
+                <p className="text-[#f2f2f2]/70">Selecione uma disciplina para ver as estatísticas por assunto</p>
+              </div>
+            )}
           </div>
         )}
       </div>
