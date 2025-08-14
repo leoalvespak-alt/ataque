@@ -1,0 +1,5 @@
+[33m5949528[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeat/theme-system-supabase[m[33m, [m[1;31morigin/feat/theme-system-supabase[m[33m)[m Adiciona arquivo de deploy para o cPanel
+[33m2f2715d[m feat: Conectar dados reais do aluno na página de estatísticas - Remove dados mock e implementa busca de dados reais do banco - Adiciona cálculos reais de percentual, streak e dias de estudo - Implementa estatísticas por disciplina e assunto baseadas em dados reais - Adiciona evolução temporal baseada em respostas reais do usuário - Remove mensagens de debug e melhora tratamento de erros
+[33meab2297[m v2.0: Dashboard de Estatísticas Completo e Sistema de Temas
+[33m9959c63[m feat: implementar sistema de temas dinâmicos completo
+[33mb21990e[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmaster[m[33m)[m Implementação completa da plataforma de questões com sistema de gamificação
