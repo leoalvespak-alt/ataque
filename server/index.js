@@ -10,7 +10,7 @@ const { requestLogger, writeLog } = require('./utils/logger');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const questionRoutes = require('./routes/questions');
-const categoryRoutes = require('./routes/categories');
+const { router: categoryRoutes } = require('./routes/categories');
 const subscriptionRoutes = require('./routes/subscriptions');
 const adminRoutes = require('./routes/admin');
 const asaasRoutes = require('./routes/asaas');
@@ -21,6 +21,7 @@ const comentariosRoutes = require('./routes/comentarios');
 const avaliacoesRoutes = require('./routes/avaliacoes');
 const statsRoutes = require('./routes/stats');
 const { router: patentesRoutes } = require('./routes/patentes');
+const profileRoutes = require('./routes/profile');
 
 // Importar middleware de autenticação
 const { authenticateToken } = require('./middleware/auth');
@@ -29,14 +30,14 @@ const { authenticateToken } = require('./middleware/auth');
 const { sequelize } = require('./config/database');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Configurações de segurança
 app.use(helmet());
 
 // Configuração do CORS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:3002', 'http://127.0.0.1:5173'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'http://127.0.0.1:3002', 'http://127.0.0.1:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -70,6 +71,7 @@ app.use((err, req, res, next) => {
 
 // Servir arquivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use(express.static(path.join(__dirname, '../client/public')));
 
 // Rotas da API
 app.use('/api/auth', authRoutes);
@@ -86,6 +88,7 @@ app.use('/api/comentarios', comentariosRoutes);
 app.use('/api/avaliacoes', avaliacoesRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/patentes', patentesRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Rota de health check
 app.get('/api/health', (req, res) => {
@@ -94,6 +97,59 @@ app.get('/api/health', (req, res) => {
     message: 'Rota de Ataque Questões API está funcionando!',
     timestamp: new Date().toISOString()
   });
+});
+
+// Rotas para páginas HTML
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/index.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/login.html'));
+});
+
+app.get('/cadastro', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/cadastro.html'));
+});
+
+app.get('/perfil', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/perfil-modern.html'));
+});
+
+app.get('/questoes', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/questoes-modern.html'));
+});
+
+app.get('/planos', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/planos-modern.html'));
+});
+
+app.get('/ranking', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/ranking-modern.html'));
+});
+
+app.get('/estatisticas', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/estatisticas.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/admin.html'));
+});
+
+app.get('/admin-usuarios', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/admin-usuarios.html'));
+});
+
+app.get('/admin-questoes', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/admin-questoes.html'));
+});
+
+app.get('/admin-relatorios', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/admin-relatorios.html'));
+});
+
+app.get('/admin-configuracoes', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/admin-configuracoes.html'));
 });
 
 // Middleware de tratamento de erros

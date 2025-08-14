@@ -92,7 +92,7 @@
             };
             
             // Primeira etapa: criar cliente no ASAAS
-            fetch('http://localhost:3002/api/asaas/criar-cliente', {
+            fetch('/api/asaas/criar-cliente', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -138,7 +138,7 @@
             // Mapear tipo de plano para ID (assumindo IDs 1 e 2)
             const planoId = tipoPlano === 'mensal' ? 1 : 2;
             
-            return fetch('http://localhost:3002/api/asaas/criar-assinatura', {
+            return fetch('/api/asaas/criar-assinatura', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -11,6 +11,7 @@ const PlanoAssinatura = require('./PlanoAssinatura');
 const AssinaturaUsuario = require('./AssinaturaUsuario');
 const ConfiguracaoPlataforma = require('./ConfiguracaoPlataforma');
 const Patente = require('./Patente');
+const FavoritoQuestao = require('./FavoritoQuestao');
 
 // Associações Disciplina - Assunto
 Disciplina.hasMany(Assunto, { foreignKey: 'disciplina_id', as: 'assuntos' });
@@ -59,6 +60,12 @@ PlanoAssinatura.hasMany(AssinaturaUsuario, { foreignKey: 'plano_id', as: 'assina
 User.belongsTo(Patente, { foreignKey: 'patente_id', as: 'patente' });
 Patente.hasMany(User, { foreignKey: 'patente_id', as: 'usuarios' });
 
+// Favoritos
+FavoritoQuestao.belongsTo(User, { foreignKey: 'usuario_id', as: 'usuario' });
+FavoritoQuestao.belongsTo(Questao, { foreignKey: 'questao_id', as: 'questao' });
+User.belongsToMany(Questao, { through: FavoritoQuestao, foreignKey: 'usuario_id', otherKey: 'questao_id', as: 'favoritos' });
+Questao.belongsToMany(User, { through: FavoritoQuestao, foreignKey: 'questao_id', otherKey: 'usuario_id', as: 'usuariosQueFavoritaram' });
+
 module.exports = {
   User,
   Disciplina,
@@ -73,4 +80,5 @@ module.exports = {
   AssinaturaUsuario,
   ConfiguracaoPlataforma,
   Patente
+  , FavoritoQuestao
 };

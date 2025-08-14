@@ -1,6 +1,32 @@
-# Rota de Ataque Questões
+# Rota de Ataque Questões v1.2.0
 
 Uma plataforma completa de estudo para concursos públicos com modelo freemium, desenvolvida com React, Node.js e MySQL.
+
+## 🆕 **NOVO NA VERSÃO 1.2.0**
+
+### ✨ **Funcionalidades Administrativas Avançadas**
+- **🎯 Edição Completa de Usuários**: Modal interativo para editar dados, tipo, status e permissões
+- **📝 Criação de Questões**: Formulário completo com validação e upload de alternativas
+- **📊 Relatórios Detalhados**: Gráficos interativos com Chart.js (crescimento de usuários, questões por disciplina, performance)
+- **⚙️ Configurações da Plataforma**: Painel completo de configurações (gerais, notificações, segurança, gamificação)
+
+### 🎨 **Melhorias de Interface**
+- **🎨 Design Consistente**: Cores padronizadas (#f2f2f2 para texto, #8b0000 para destaque)
+- **📱 Responsividade Total**: Interface otimizada para mobile e desktop
+- **🔧 Componentes Reutilizáveis**: Modais, formulários e estilos padronizados
+- **⚡ Performance Otimizada**: Carregamento rápido e feedback visual
+
+### 🔧 **APIs Backend Robustas**
+- **👥 Gerenciamento de Usuários**: CRUD completo com validação
+- **❓ Gerenciamento de Questões**: Criação, edição e exclusão
+- **📈 Sistema de Relatórios**: APIs para estatísticas e métricas
+- **⚙️ Configurações Dinâmicas**: Sistema flexível de configurações
+
+### 🛡️ **Segurança e Validação**
+- **🔐 Autenticação Robusta**: JWT com middleware de autorização
+- **✅ Validação Completa**: Frontend e backend com express-validator
+- **📝 Logs de Auditoria**: Rastreamento de todas as ações administrativas
+- **🛡️ Middleware de Segurança**: Proteção contra ataques comuns
 
 ## 🎯 Sobre o Projeto
 
@@ -22,6 +48,10 @@ A **Rota de Ataque Questões** é uma plataforma robusta e escalável para estud
 - **bcryptjs** para criptografia
 - **Multer** para upload de arquivos
 - **Axios** para integração com APIs
+- **express-validator** para validação de dados
+- **Chart.js** para geração de relatórios
+- **Helmet** para segurança
+- **Rate Limiting** para proteção contra ataques
 
 ### Frontend (a ser implementado)
 - **React** com TypeScript
@@ -189,6 +219,10 @@ npm run server
 - ✅ Gestão de assinaturas
 - ✅ Upload de logo
 - ✅ Configurações da plataforma
+- ✅ **Edição Avançada de Usuários** (v1.2)
+- ✅ **Criação de Questões** (v1.2)
+- ✅ **Relatórios Detalhados** (v1.2)
+- ✅ **Configurações Dinâmicas** (v1.2)
 
 ## 🔧 API Endpoints
 
@@ -224,11 +258,23 @@ npm run server
 
 ### Admin (Apenas Gestores)
 - `GET /api/admin/dashboard` - Dashboard administrativo
+- `GET /api/admin/stats` - Estatísticas para dashboard
 - `GET /api/admin/questoes` - Listar questões (admin)
 - `POST /api/admin/questoes` - Criar questão
+- `PUT /api/admin/questoes/:id/status` - Atualizar status da questão
+- `DELETE /api/admin/questoes/:id` - Excluir questão
+- `GET /api/admin/usuarios` - Listar usuários
+- `GET /api/admin/usuarios/:id` - Buscar usuário específico
+- `PUT /api/admin/usuarios/:id` - Atualizar usuário
+- `PUT /api/admin/usuarios/:id/status` - Atualizar status do usuário
+- `PUT /api/admin/usuarios/:id/type` - Alterar tipo do usuário
+- `DELETE /api/admin/usuarios/:id` - Excluir usuário
 - `GET /api/admin/comentarios` - Listar comentários
 - `PUT /api/admin/comentarios/:id/aprovar` - Aprovar comentário
 - `POST /api/admin/upload-logo` - Upload de logo
+- `GET /api/admin/settings` - Buscar configurações
+- `PUT /api/admin/settings` - Atualizar configurações
+- `GET /api/admin/reports` - Gerar relatórios
 
 ## 🚀 Deploy
 
@@ -263,14 +309,25 @@ Para suporte, envie um email para suporte@rotadeataque.com ou abra uma issue no 
 
 ## 🗺️ Roadmap
 
+### ✅ **Concluído na v1.2.0**
+- [x] **Relatórios avançados** - Gráficos interativos com Chart.js
+- [x] **Sistema de configurações dinâmicas** - Painel completo de configurações
+- [x] **Edição avançada de usuários** - Modal interativo com validação
+- [x] **Criação de questões** - Formulário completo com validação
+- [x] **APIs administrativas robustas** - CRUD completo para todas as entidades
+
+### 🚧 **Em Desenvolvimento**
 - [ ] Implementação do frontend React
 - [ ] Sistema de notificações
 - [ ] App mobile (React Native)
 - [ ] Sistema de simulados
-- [ ] Relatórios avançados
+
+### 📋 **Próximas Versões**
 - [ ] Integração com mais gateways de pagamento
 - [ ] Sistema de afiliados
 - [ ] API pública para terceiros
+- [ ] Sistema de gamificação avançado
+- [ ] Integração com IA para recomendações
 
 ---
 

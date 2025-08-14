@@ -3,135 +3,827 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configurações - Rota de Ataque Questões</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Configurações - Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=Aptos:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: #1b1b1b;
+            --text-primary: #f2f2f2;
+            --text-secondary: #f2f2f2;
+            --highlight: #8b0000;
+            --card-background: #242424;
+            --border-color: #333333;
+            --success: #00c853;
+            --warning: #ffab00;
+            --error: #d50000;
+            --transition: all 0.3s ease-in-out;
+        }
+
         body {
-            background-color: #1b1b1b;
-            color: #f2f2f2;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
         }
-        .navbar {
-            background-color: #c1121f !important;
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
         }
-        .card {
-            background-color: #2d2d2d;
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .admin-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+            color: var(--text-primary);
+        }
+
+        .back-btn {
+            background-color: var(--highlight);
+            color: var(--text-primary);
             border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background-color: #a00000;
+        }
+
+        .save-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-btn:hover {
+            background-color: #00a844;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .config-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .config-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
             margin-bottom: 20px;
         }
-        .btn-primary {
-            background-color: #c1121f;
-            border-color: #c1121f;
+
+        .form-group label {
+            display: block;
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
         }
-        .btn-primary:hover {
-            background-color: #a30f1a;
-            border-color: #a30f1a;
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.875rem;
         }
-        .form-control, .form-select {
-            background-color: #3d3d3d;
-            border-color: #4d4d4d;
-            color: #f2f2f2;
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--highlight);
         }
-        .form-control:focus, .form-select:focus {
-            background-color: #3d3d3d;
-            border-color: #c1121f;
-            color: #f2f2f2;
-            box-shadow: 0 0 0 0.25rem rgba(193, 18, 31, 0.25);
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toggle-group:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .toggle-description {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: var(--transition);
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: var(--transition);
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--highlight);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .planos-section {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .planos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .planos-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .add-plano-btn {
+            background-color: var(--highlight);
+            color: var(--text-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.875rem;
+        }
+
+        .add-plano-btn:hover {
+            background-color: #a00000;
+        }
+
+        .planos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .plano-card {
+            background-color: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .plano-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .plano-name {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .plano-price {
+            font-family: 'Saira', sans-serif;
+            font-weight: 700;
+            color: var(--highlight);
+        }
+
+        .plano-features {
+            list-style: none;
+            margin-bottom: 12px;
+        }
+
+        .plano-features li {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plano-features li::before {
+            content: "✓";
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .plano-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-edit {
+            background-color: var(--warning);
+            color: #000;
+        }
+
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-delete {
+            background-color: var(--error);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #b71c1c;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .message.success {
+            background-color: rgba(0, 200, 83, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .message.error {
+            background-color: rgba(213, 0, 0, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 20px;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .planos-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/admin">Painel Administrativo</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin.html">
-                            <i class="bi bi-house"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin-questoes.html">
-                            <i class="bi bi-question-circle"></i> Questões
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin-categorias.html">
-                            <i class="bi bi-tags"></i> Categorias
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin-usuarios.html">
-                            <i class="bi bi-people"></i> Usuários
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin-planos.html">
-                            <i class="bi bi-credit-card"></i> Planos
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin-comentarios.html">
-                            <i class="bi bi-chat-dots"></i> Comentários
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="admin-configuracoes.html">
-                            <i class="bi bi-gear"></i> Configurações
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="sair()">Sair</a>
-                    </li>
-                </ul>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Configurações da Plataforma</h1>
+            <div style="display: flex; gap: 12px;">
+                <a href="/admin" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Voltar ao Admin
+                </a>
+                <button class="save-btn" onclick="saveAllSettings()">
+                    <i class="fas fa-save"></i>
+                    Salvar Tudo
+                </button>
             </div>
         </div>
-    </nav>
 
-    <div class="container">
-        <h2 class="mb-4">Configurações</h2>
-        
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Logo e Favicon</h5>
-                <form id="form-configuracoes" class="mb-4">
-                    <div class="mb-3">
-                        <label for="favicon" class="form-label">Favicon (formato .ico)</label>
-                        <input type="file" class="form-control" id="favicon" accept=".ico">
+        <div id="message" class="message"></div>
+
+        <!-- Configurações Gerais -->
+        <div class="config-grid">
+            <div class="config-card">
+                <h3 class="config-title">
+                    <i class="fas fa-cog"></i>
+                    Configurações Gerais
+                </h3>
+                
+                <div class="form-group">
+                    <label>Nome da Plataforma</label>
+                    <input type="text" id="platformName" placeholder="Rota de Ataque Questões">
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição da Plataforma</label>
+                    <textarea id="platformDescription" placeholder="Descrição da plataforma..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Email de Contato</label>
+                    <input type="email" id="contactEmail" placeholder="contato@rotadeataque.com">
+                </div>
+
+                <div class="form-group">
+                    <label>URL do Site</label>
+                    <input type="url" id="siteUrl" placeholder="https://rotadeataque.com">
+                </div>
+            </div>
+
+            <div class="config-card">
+                <h3 class="config-title">
+                    <i class="fas fa-bell"></i>
+                    Notificações
+                </h3>
+                
+                <div class="toggle-group">
+                    <div>
+                        <div class="toggle-label">Email de Boas-vindas</div>
+                        <div class="toggle-description">Enviar email de boas-vindas para novos usuários</div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </form>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="welcomeEmail">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-group">
+                    <div>
+                        <div class="toggle-label">Notificações de Questões</div>
+                        <div class="toggle-description">Notificar sobre novas questões</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="questionNotifications">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-group">
+                    <div>
+                        <div class="toggle-label">Lembretes de Login</div>
+                        <div class="toggle-description">Enviar lembretes para usuários inativos</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="loginReminders">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-group">
+                    <div>
+                        <div class="toggle-label">Relatórios Semanais</div>
+                        <div class="toggle-description">Enviar relatórios semanais para usuários premium</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="weeklyReports">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="config-card">
+                <h3 class="config-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Segurança
+                </h3>
+                
+                <div class="form-group">
+                    <label>Força Mínima da Senha</label>
+                    <select id="passwordStrength">
+                        <option value="weak">Fraca (6 caracteres)</option>
+                        <option value="medium" selected>Média (8 caracteres)</option>
+                        <option value="strong">Forte (10 caracteres)</option>
+                        <option value="very-strong">Muito Forte (12 caracteres)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Tempo de Sessão (minutos)</label>
+                    <input type="number" id="sessionTimeout" value="60" min="15" max="1440">
+                </div>
+
+                <div class="toggle-group">
+                    <div>
+                        <div class="toggle-label">Autenticação de Dois Fatores</div>
+                        <div class="toggle-description">Requerir 2FA para usuários premium</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="twoFactorAuth">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-group">
+                    <div>
+                        <div class="toggle-label">Logs de Auditoria</div>
+                        <div class="toggle-description">Manter logs detalhados de todas as ações</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auditLogs" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="config-card">
+                <h3 class="config-title">
+                    <i class="fas fa-gamepad"></i>
+                    Configurações de Jogo
+                </h3>
+                
+                <div class="form-group">
+                    <label>XP por Questão Correta</label>
+                    <input type="number" id="xpPerCorrect" value="10" min="1" max="100">
+                </div>
+
+                <div class="form-group">
+                    <label>XP por Questão Incorreta</label>
+                    <input type="number" id="xpPerIncorrect" value="2" min="0" max="50">
+                </div>
+
+                <div class="form-group">
+                    <label>Questões por Sessão</label>
+                    <input type="number" id="questionsPerSession" value="10" min="5" max="50">
+                </div>
+
+                <div class="toggle-group">
+                    <div>
+                        <div class="toggle-label">Modo Competitivo</div>
+                        <div class="toggle-description">Ativar ranking e competições</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="competitiveMode" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-group">
+                    <div>
+                        <div class="toggle-label">Dicas Automáticas</div>
+                        <div class="toggle-description">Mostrar dicas após 2 tentativas</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoHints">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configurações de Planos -->
+        <div class="planos-section">
+            <div class="planos-header">
+                <h3 class="planos-title">Planos de Assinatura</h3>
+                <button class="add-plano-btn" onclick="addPlano()">
+                    <i class="fas fa-plus"></i>
+                    Adicionar Plano
+                </button>
+            </div>
+
+            <div class="planos-grid" id="planosGrid">
+                <!-- Planos serão carregados aqui -->
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="utils.js"></script>
-    <script src="admin-scripts.html"></script>
     <script>
-        // Função para sair
-        function sair() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
-        }
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
-            // Verificar autenticação
+        // Verificar se está logado como admin
+        document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('token');
-            if (!token) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!token || user.tipo_usuario !== 'gestor') {
                 window.location.href = '/login';
                 return;
             }
+
+            loadSettings();
+            loadPlanos();
         });
+
+        function loadSettings() {
+            fetch('/api/admin/settings', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    populateSettings(data.settings);
+                } else {
+                    // Usar configurações padrão
+                    populateDefaultSettings();
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar configurações:', error);
+                populateDefaultSettings();
+            });
+        }
+
+        function populateSettings(settings) {
+            // Configurações gerais
+            document.getElementById('platformName').value = settings.platformName || 'Rota de Ataque Questões';
+            document.getElementById('platformDescription').value = settings.platformDescription || '';
+            document.getElementById('contactEmail').value = settings.contactEmail || '';
+            document.getElementById('siteUrl').value = settings.siteUrl || '';
+
+            // Notificações
+            document.getElementById('welcomeEmail').checked = settings.welcomeEmail || false;
+            document.getElementById('questionNotifications').checked = settings.questionNotifications || false;
+            document.getElementById('loginReminders').checked = settings.loginReminders || false;
+            document.getElementById('weeklyReports').checked = settings.weeklyReports || false;
+
+            // Segurança
+            document.getElementById('passwordStrength').value = settings.passwordStrength || 'medium';
+            document.getElementById('sessionTimeout').value = settings.sessionTimeout || 60;
+            document.getElementById('twoFactorAuth').checked = settings.twoFactorAuth || false;
+            document.getElementById('auditLogs').checked = settings.auditLogs !== false;
+
+            // Jogo
+            document.getElementById('xpPerCorrect').value = settings.xpPerCorrect || 10;
+            document.getElementById('xpPerIncorrect').value = settings.xpPerIncorrect || 2;
+            document.getElementById('questionsPerSession').value = settings.questionsPerSession || 10;
+            document.getElementById('competitiveMode').checked = settings.competitiveMode !== false;
+            document.getElementById('autoHints').checked = settings.autoHints || false;
+        }
+
+        function populateDefaultSettings() {
+            // Configurações padrão
+            document.getElementById('platformName').value = 'Rota de Ataque Questões';
+            document.getElementById('platformDescription').value = 'Plataforma de questões para concursos públicos';
+            document.getElementById('contactEmail').value = 'contato@rotadeataque.com';
+            document.getElementById('siteUrl').value = 'https://rotadeataque.com';
+            
+            // Outras configurações já têm valores padrão no HTML
+        }
+
+        function loadPlanos() {
+            fetch('/api/admin/planos', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayPlanos(data.planos);
+                } else {
+                    // Usar planos padrão
+                    displayDefaultPlanos();
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar planos:', error);
+                displayDefaultPlanos();
+            });
+        }
+
+        function displayPlanos(planos) {
+            const grid = document.getElementById('planosGrid');
+            grid.innerHTML = '';
+
+            planos.forEach(plano => {
+                const card = createPlanoCard(plano);
+                grid.appendChild(card);
+            });
+        }
+
+        function displayDefaultPlanos() {
+            const defaultPlanos = [
+                {
+                    id: 1,
+                    nome: 'Gratuito',
+                    preco: 0,
+                    descricao: 'Acesso básico à plataforma',
+                    recursos: ['10 questões por dia', 'Acesso a questões básicas', 'Ranking básico']
+                },
+                {
+                    id: 2,
+                    nome: 'Premium',
+                    preco: 29.90,
+                    descricao: 'Acesso completo à plataforma',
+                    recursos: ['Questões ilimitadas', 'Acesso a todas as questões', 'Ranking completo', 'Relatórios detalhados', 'Suporte prioritário']
+                }
+            ];
+
+            displayPlanos(defaultPlanos);
+        }
+
+        function createPlanoCard(plano) {
+            const card = document.createElement('div');
+            card.className = 'plano-card';
+            card.innerHTML = `
+                <div class="plano-header">
+                    <div class="plano-name">${plano.nome}</div>
+                    <div class="plano-price">R$ ${plano.preco.toFixed(2)}</div>
+                </div>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 12px;">${plano.descricao}</p>
+                <ul class="plano-features">
+                    ${plano.recursos.map(recurso => `<li>${recurso}</li>`).join('')}
+                </ul>
+                <div class="plano-actions">
+                    <button class="btn-small btn-edit" onclick="editPlano(${plano.id})">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button class="btn-small btn-delete" onclick="deletePlano(${plano.id})">
+                        <i class="fas fa-trash"></i> Excluir
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        function saveAllSettings() {
+            const settings = {
+                // Configurações gerais
+                platformName: document.getElementById('platformName').value,
+                platformDescription: document.getElementById('platformDescription').value,
+                contactEmail: document.getElementById('contactEmail').value,
+                siteUrl: document.getElementById('siteUrl').value,
+
+                // Notificações
+                welcomeEmail: document.getElementById('welcomeEmail').checked,
+                questionNotifications: document.getElementById('questionNotifications').checked,
+                loginReminders: document.getElementById('loginReminders').checked,
+                weeklyReports: document.getElementById('weeklyReports').checked,
+
+                // Segurança
+                passwordStrength: document.getElementById('passwordStrength').value,
+                sessionTimeout: parseInt(document.getElementById('sessionTimeout').value),
+                twoFactorAuth: document.getElementById('twoFactorAuth').checked,
+                auditLogs: document.getElementById('auditLogs').checked,
+
+                // Jogo
+                xpPerCorrect: parseInt(document.getElementById('xpPerCorrect').value),
+                xpPerIncorrect: parseInt(document.getElementById('xpPerIncorrect').value),
+                questionsPerSession: parseInt(document.getElementById('questionsPerSession').value),
+                competitiveMode: document.getElementById('competitiveMode').checked,
+                autoHints: document.getElementById('autoHints').checked
+            };
+
+            fetch('/api/admin/settings', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Configurações salvas com sucesso!', 'success');
+                } else {
+                    showMessage(data.message || 'Erro ao salvar configurações', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao salvar configurações:', error);
+                showMessage('Erro de conexão. Tente novamente.', 'error');
+            });
+        }
+
+        function addPlano() {
+            showMessage('Funcionalidade de adicionar plano em desenvolvimento', 'success');
+        }
+
+        function editPlano(planoId) {
+            showMessage(`Editar plano ${planoId} - Funcionalidade em desenvolvimento`, 'success');
+        }
+
+        function deletePlano(planoId) {
+            if (confirm('Tem certeza que deseja excluir este plano?')) {
+                showMessage(`Plano ${planoId} excluído - Funcionalidade em desenvolvimento`, 'success');
+            }
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
     </script>
 </body>
 </html>

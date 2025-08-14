@@ -11,6 +11,7 @@ const {
 const { requireGestor } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
+const { invalidateCategoryCache } = require('./categories');
 
 const router = express.Router();
 
@@ -128,6 +129,42 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
+// Estatísticas para o frontend
+router.get('/stats', async (req, res) => {
+  try {
+    const [
+      totalUsuarios,
+      usuariosGratuitos,
+      usuariosPremium,
+      totalQuestoes,
+      totalRespostas
+    ] = await Promise.all([
+      User.count({ where: { tipo_usuario: 'aluno' } }),
+      User.count({ where: { tipo_usuario: 'aluno', status: 'gratuito' } }),
+      User.count({ where: { tipo_usuario: 'aluno', status: 'premium' } }),
+      Questao.count({ where: { ativo: true } }),
+      RespostaUsuario.count()
+    ]);
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers: totalUsuarios,
+        totalQuestions: totalQuestoes,
+        totalAnswers: totalRespostas,
+        premiumUsers: usuariosPremium
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas:', error);
+    res.status(500).json({
+      error: 'Erro interno do servidor',
+      message: 'Erro ao buscar estatísticas'
+    });
+  }
+});
+
 // Gerenciamento de Disciplinas
 router.get('/disciplinas', async (req, res) => {
   try {
@@ -164,6 +201,9 @@ router.post('/disciplinas', [
       nome: nome.trim(),
       descricao: descricao?.trim() || null
     });
+
+    // Invalidar cache de categorias
+    invalidateCategoryCache();
 
     res.status(201).json({
       message: 'Disciplina criada com sucesso!',
@@ -230,6 +270,9 @@ router.post('/assuntos', [
       descricao: descricao?.trim() || null
     });
 
+    // Invalidar cache de categorias
+    invalidateCategoryCache();
+
     res.status(201).json({
       message: 'Assunto criado com sucesso!',
       assunto
@@ -274,6 +317,9 @@ router.put('/disciplinas/:id', [
       descricao: descricao?.trim() || null
     });
 
+    // Invalidar cache de categorias
+    invalidateCategoryCache();
+
     res.json({
       message: 'Disciplina atualizada com sucesso!',
       disciplina
@@ -301,16 +347,14 @@ router.delete('/disciplinas/:id', async (req, res) => {
       });
     }
 
-    // Verificar se há assuntos vinculados
-    const assuntosVinculados = await Assunto.count({ where: { disciplina_id: id } });
-    if (assuntosVinculados > 0) {
-      return res.status(400).json({
-        error: 'Não é possível excluir disciplina',
-        message: 'Existem assuntos vinculados a esta disciplina'
-      });
-    }
+    // Primeiro deletar assuntos relacionados
+    await Assunto.destroy({ where: { disciplina_id: id } });
 
+    // Depois deletar a disciplina
     await disciplina.destroy();
+
+    // Invalidar cache de categorias
+    invalidateCategoryCache();
 
     res.json({
       message: 'Disciplina excluída com sucesso!'
@@ -549,6 +593,9 @@ router.put('/assuntos/:id', [
       descricao: descricao?.trim() || null
     });
 
+    // Invalidar cache de categorias
+    invalidateCategoryCache();
+
     res.json({
       message: 'Assunto atualizado com sucesso!',
       assunto
@@ -579,13 +626,16 @@ router.delete('/assuntos/:id', async (req, res) => {
     // Verificar se há questões vinculadas
     const questoesVinculadas = await Questao.count({ where: { assunto_id: id } });
     if (questoesVinculadas > 0) {
-      return res.status(400).json({
-        error: 'Não é possível excluir assunto',
-        message: 'Existem questões vinculadas a este assunto'
-      });
+      // Se houver questões vinculadas, apenas desativar o assunto em vez de excluir
+      await assunto.update({ ativo: false });
+      console.log(`Assunto ${id} desativado (tem ${questoesVinculadas} questões vinculadas)`);
+    } else {
+      // Se não houver questões vinculadas, excluir completamente
+      await assunto.destroy();
     }
 
-    await assunto.destroy();
+    // Invalidar cache de categorias
+    invalidateCategoryCache();
 
     res.json({
       message: 'Assunto excluído com sucesso!'
@@ -718,12 +768,13 @@ router.get('/questoes', [
     });
 
     res.json({
-      questoes: questoes.rows,
+      success: true,
+      questions: questoes.rows,
       pagination: {
         total: questoes.count,
         page: parseInt(page),
         limit: parseInt(limit),
-        totalPages: Math.ceil(questoes.count / limit)
+        pages: Math.ceil(questoes.count / limit)
       }
     });
 
@@ -767,6 +818,7 @@ router.post('/questoes', [
       alternativa_d,
       alternativa_e,
       gabarito,
+      tipo,
       ano,
       disciplina_id,
       assunto_id,
@@ -1123,33 +1175,7 @@ router.put('/questoes/:id', [
   }
 });
 
-// Excluir questão
-router.delete('/questoes/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const questao = await Questao.findByPk(id);
-    if (!questao) {
-      return res.status(404).json({
-        success: false,
-        message: 'Questão não encontrada'
-      });
-    }
-    
-    await questao.destroy();
-    
-    res.json({
-      success: true,
-      message: 'Questão excluída com sucesso!'
-    });
-  } catch (error) {
-    console.error('Erro ao excluir questão:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao excluir questão'
-    });
-  }
-});
+
 
 // Gerenciamento de Comentários
 router.get('/comentarios', [
@@ -1880,6 +1906,705 @@ router.put('/comentarios/:id/responder', [
     res.status(500).json({
       success: false,
       message: 'Erro ao responder comentário'
+    });
+  }
+});
+
+// Gerenciamento de Usuários
+router.get('/users', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = '', status = '', tipo = '' } = req.query;
+    const offset = (page - 1) * limit;
+
+    let whereClause = { tipo_usuario: 'aluno' };
+    
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        [sequelize.Op.or]: [
+          { nome: { [sequelize.Op.like]: `%${search}%` } },
+          { email: { [sequelize.Op.like]: `%${search}%` } }
+        ]
+      };
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    const { count, rows: users } = await User.findAndCountAll({
+      where: whereClause,
+      attributes: ['id', 'nome', 'email', 'status', 'tipo_usuario', 'xp', 'questoes_respondidas', 'ativo', 'ultimo_login', 'created_at'],
+      order: [['created_at', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+
+    res.json({
+      success: true,
+      users,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(count / limit)
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao buscar usuários'
+    });
+  }
+});
+
+// Atualizar status do usuário
+router.put('/users/:id/status', [
+  body('ativo').isBoolean().withMessage('Status deve ser true ou false')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Dados inválidos',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { ativo } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    await user.update({ ativo });
+
+    auditLog('UPDATE_USER_STATUS', req.user.id, 'User', {
+      userId: id,
+      newStatus: ativo,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: `Usuário ${ativo ? 'ativado' : 'desativado'} com sucesso!`,
+      user
+    });
+
+  } catch (error) {
+    console.error('Erro ao atualizar status do usuário:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao atualizar status do usuário'
+    });
+  }
+});
+
+// Atualizar tipo de usuário
+router.put('/users/:id/type', [
+  body('tipo_usuario').isIn(['aluno', 'gestor']).withMessage('Tipo de usuário inválido')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Dados inválidos',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { tipo_usuario } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    await user.update({ tipo_usuario });
+
+    auditLog('UPDATE_USER_TYPE', req.user.id, 'User', {
+      userId: id,
+      newType: tipo_usuario,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'Tipo de usuário atualizado com sucesso!',
+      user
+    });
+
+  } catch (error) {
+    console.error('Erro ao atualizar tipo do usuário:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao atualizar tipo do usuário'
+    });
+  }
+});
+
+// Buscar usuário individual
+router.get('/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id, {
+      attributes: ['id', 'nome', 'email', 'status', 'tipo_usuario', 'ativo', 'xp', 'questoes_respondidas', 'ultimo_login', 'created_at']
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      user
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar usuário:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao buscar usuário'
+    });
+  }
+});
+
+// Atualizar usuário
+router.put('/users/:id', [
+  body('nome').trim().isLength({ min: 2, max: 100 }).withMessage('Nome deve ter entre 2 e 100 caracteres'),
+  body('email').isEmail().normalizeEmail().withMessage('Email inválido'),
+  body('tipo_usuario').isIn(['aluno', 'gestor']).withMessage('Tipo de usuário inválido'),
+  body('status').isIn(['gratuito', 'premium']).withMessage('Status inválido'),
+  body('ativo').isBoolean().withMessage('Status ativo deve ser true ou false')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Dados inválidos',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { nome, email, tipo_usuario, status, ativo } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    // Verificar se email já existe (exceto para o próprio usuário)
+    const existingUser = await User.findOne({
+      where: { 
+        email,
+        id: { [sequelize.Op.ne]: id }
+      }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Este email já está sendo usado por outro usuário'
+      });
+    }
+
+    await user.update({
+      nome: nome.trim(),
+      email: email.toLowerCase(),
+      tipo_usuario,
+      status,
+      ativo
+    });
+
+    auditLog('UPDATE_USER', req.user.id, 'User', {
+      userId: id,
+      changes: { nome, email, tipo_usuario, status, ativo },
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'Usuário atualizado com sucesso!',
+      user
+    });
+
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao atualizar usuário'
+    });
+  }
+});
+
+// Excluir usuário
+router.delete('/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    // Verificar se não é o próprio usuário logado
+    if (user.id === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir sua própria conta'
+      });
+    }
+
+    await user.destroy();
+
+    auditLog('DELETE_USER', req.user.id, 'User', {
+      deletedUserId: id,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'Usuário excluído com sucesso!'
+    });
+
+  } catch (error) {
+    console.error('Erro ao excluir usuário:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao excluir usuário'
+    });
+  }
+});
+
+// Gerenciamento de Questões
+router.get('/questions', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = '', disciplina = '', assunto = '', banca = '' } = req.query;
+    const offset = (page - 1) * limit;
+
+    let whereClause = { ativo: true };
+    
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        [sequelize.Op.or]: [
+          { enunciado: { [sequelize.Op.like]: `%${search}%` } },
+          { alternativa_a: { [sequelize.Op.like]: `%${search}%` } },
+          { alternativa_b: { [sequelize.Op.like]: `%${search}%` } },
+          { alternativa_c: { [sequelize.Op.like]: `%${search}%` } },
+          { alternativa_d: { [sequelize.Op.like]: `%${search}%` } },
+          { alternativa_e: { [sequelize.Op.like]: `%${search}%` } }
+        ]
+      };
+    }
+
+    if (disciplina) {
+      whereClause.disciplina_id = disciplina;
+    }
+
+    if (assunto) {
+      whereClause.assunto_id = assunto;
+    }
+
+    if (banca) {
+      whereClause.banca_id = banca;
+    }
+
+    const { count, rows: questions } = await Questao.findAndCountAll({
+      where: whereClause,
+      include: [
+        { model: Disciplina, as: 'disciplina', attributes: ['nome'] },
+        { model: Assunto, as: 'assunto', attributes: ['nome'] },
+        { model: Banca, as: 'banca', attributes: ['nome'] },
+        { model: Orgao, as: 'orgao', attributes: ['nome'] }
+      ],
+      order: [['created_at', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+
+    res.json({
+      success: true,
+      questions,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(count / limit)
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar questões:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao buscar questões'
+    });
+  }
+});
+
+// Atualizar status da questão
+router.put('/questions/:id/status', [
+  body('ativo').isBoolean().withMessage('Status deve ser true ou false')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Dados inválidos',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { ativo } = req.body;
+
+    const question = await Questao.findByPk(id);
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: 'Questão não encontrada'
+      });
+    }
+
+    await question.update({ ativo });
+
+    auditLog('UPDATE_QUESTION_STATUS', req.user.id, 'Questao', {
+      questionId: id,
+      newStatus: ativo,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: `Questão ${ativo ? 'ativada' : 'desativada'} com sucesso!`,
+      question
+    });
+
+  } catch (error) {
+    console.error('Erro ao atualizar status da questão:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao atualizar status da questão'
+    });
+  }
+});
+
+// Excluir questão
+router.delete('/questions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const question = await Questao.findByPk(id);
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: 'Questão não encontrada'
+      });
+    }
+
+    await question.destroy();
+
+    auditLog('DELETE_QUESTION', req.user.id, 'Questao', {
+      questionId: id,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'Questão excluída com sucesso!'
+    });
+
+  } catch (error) {
+    console.error('Erro ao excluir questão:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao excluir questão'
+    });
+  }
+});
+
+// Criar nova questão
+router.post('/questions', [
+  body('enunciado').trim().isLength({ min: 10, max: 2000 }).withMessage('Enunciado deve ter entre 10 e 2000 caracteres'),
+  body('disciplina_id').isInt().withMessage('Disciplina é obrigatória'),
+  body('assunto_id').isInt().withMessage('Assunto é obrigatório'),
+  body('banca_id').isInt().withMessage('Banca é obrigatória'),
+  body('alternativa_a').trim().isLength({ min: 1, max: 500 }).withMessage('Alternativa A é obrigatória'),
+  body('alternativa_b').trim().isLength({ min: 1, max: 500 }).withMessage('Alternativa B é obrigatória'),
+  body('alternativa_c').trim().isLength({ min: 1, max: 500 }).withMessage('Alternativa C é obrigatória'),
+  body('alternativa_d').trim().isLength({ min: 1, max: 500 }).withMessage('Alternativa D é obrigatória'),
+  body('alternativa_correta').isIn(['A', 'B', 'C', 'D', 'E']).withMessage('Alternativa correta deve ser A, B, C, D ou E')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Dados inválidos',
+        details: errors.array()
+      });
+    }
+
+    const {
+      enunciado,
+      disciplina_id,
+      assunto_id,
+      banca_id,
+      orgao_id,
+      alternativa_a,
+      alternativa_b,
+      alternativa_c,
+      alternativa_d,
+      alternativa_e,
+      alternativa_correta,
+      justificativa
+    } = req.body;
+
+    // Verificar se disciplina existe
+    const disciplina = await Disciplina.findByPk(disciplina_id);
+    if (!disciplina) {
+      return res.status(400).json({
+        success: false,
+        message: 'Disciplina não encontrada'
+      });
+    }
+
+    // Verificar se assunto existe
+    const assunto = await Assunto.findByPk(assunto_id);
+    if (!assunto) {
+      return res.status(400).json({
+        success: false,
+        message: 'Assunto não encontrado'
+      });
+    }
+
+    // Verificar se banca existe
+    const banca = await Banca.findByPk(banca_id);
+    if (!banca) {
+      return res.status(400).json({
+        success: false,
+        message: 'Banca não encontrada'
+      });
+    }
+
+    // Verificar se órgão existe (se fornecido)
+    if (orgao_id) {
+      const orgao = await Orgao.findByPk(orgao_id);
+      if (!orgao) {
+        return res.status(400).json({
+          success: false,
+          message: 'Órgão não encontrado'
+        });
+      }
+    }
+
+    // Criar questão
+    const question = await Questao.create({
+      enunciado: enunciado.trim(),
+      disciplina_id,
+      assunto_id,
+      banca_id,
+      orgao_id: orgao_id || null,
+      alternativa_a: alternativa_a.trim(),
+      alternativa_b: alternativa_b.trim(),
+      alternativa_c: alternativa_c.trim(),
+      alternativa_d: alternativa_d.trim(),
+      alternativa_e: alternativa_e ? alternativa_e.trim() : null,
+      alternativa_correta,
+      justificativa: justificativa ? justificativa.trim() : null,
+      ativo: true
+    });
+
+    auditLog('CREATE_QUESTION', req.user.id, 'Questao', {
+      questionId: question.id,
+      disciplina_id,
+      assunto_id,
+      banca_id,
+      orgao_id,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Questão criada com sucesso!',
+      question
+    });
+
+  } catch (error) {
+    console.error('Erro ao criar questão:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao criar questão'
+    });
+  }
+});
+
+// Relatórios
+router.get('/reports', [
+  query('period').optional().isInt({ min: 1, max: 365 }),
+  query('type').optional().isIn(['general', 'users', 'questions', 'performance']),
+  query('disciplina').optional().isInt()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Parâmetros inválidos',
+        details: errors.array()
+      });
+    }
+
+    const { period = 30, type = 'general', disciplina } = req.query;
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - parseInt(period));
+
+    // Estatísticas básicas
+    const [
+      totalUsers,
+      totalQuestions,
+      totalAnswers,
+      avgAccuracy
+    ] = await Promise.all([
+      User.count({ where: { tipo_usuario: 'aluno' } }),
+      Questao.count({ where: { ativo: true } }),
+      RespostaUsuario.count(),
+      RespostaUsuario.findOne({
+        attributes: [
+          [sequelize.fn('AVG', sequelize.literal('CASE WHEN acertou THEN 100 ELSE 0 END')), 'avg_accuracy']
+        ],
+        raw: true
+      })
+    ]);
+
+    // Dados para gráficos
+    const usersData = await User.findAll({
+      where: {
+        tipo_usuario: 'aluno',
+        created_at: { [sequelize.Op.gte]: daysAgo }
+      },
+      attributes: [
+        [sequelize.fn('DATE', sequelize.col('created_at')), 'date'],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      group: [sequelize.fn('DATE', sequelize.col('created_at'))],
+      order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']],
+      raw: true
+    });
+
+    const questionsByDiscipline = await Questao.findAll({
+      where: { ativo: true },
+      include: [{ model: Disciplina, as: 'disciplina', attributes: ['nome'] }],
+      attributes: [
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      group: ['disciplina.nome'],
+      raw: true
+    });
+
+    const performanceData = await RespostaUsuario.findAll({
+      where: {
+        data_resposta: { [sequelize.Op.gte]: daysAgo }
+      },
+      attributes: [
+        [sequelize.fn('DATE', sequelize.col('data_resposta')), 'date'],
+        [sequelize.fn('AVG', sequelize.literal('CASE WHEN acertou THEN 100 ELSE 0 END')), 'accuracy']
+      ],
+      group: [sequelize.fn('DATE', sequelize.col('data_resposta'))],
+      order: [[sequelize.fn('DATE', sequelize.col('data_resposta')), 'ASC']],
+      raw: true
+    });
+
+    // Top usuários
+    const topUsers = await User.findAll({
+      where: { tipo_usuario: 'aluno' },
+      include: [
+        {
+          model: RespostaUsuario,
+          as: 'respostas',
+          attributes: [
+            [sequelize.fn('COUNT', sequelize.col('respostas.id')), 'total_respostas'],
+            [sequelize.fn('AVG', sequelize.literal('CASE WHEN respostas.acertou THEN 100 ELSE 0 END')), 'taxa_acerto']
+          ]
+        }
+      ],
+      attributes: ['id', 'nome', 'xp', 'ultimo_login'],
+      group: ['User.id'],
+      order: [[sequelize.literal('xp'), 'DESC']],
+      limit: 10,
+      raw: true
+    });
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        totalQuestions,
+        totalAnswers,
+        avgAccuracy: Math.round(avgAccuracy?.avg_accuracy || 0)
+      },
+      charts: {
+        users: {
+          labels: usersData.map(d => d.date),
+          data: usersData.map(d => parseInt(d.count))
+        },
+        questions: {
+          labels: questionsByDiscipline.map(d => d['disciplina.nome']),
+          data: questionsByDiscipline.map(d => parseInt(d.count))
+        },
+        performance: {
+          labels: performanceData.map(d => d.date),
+          data: performanceData.map(d => Math.round(d.accuracy || 0))
+        }
+      },
+      topUsers: topUsers.map(user => ({
+        nome: user.nome,
+        xp: user.xp,
+        questoes_respondidas: parseInt(user.total_respostas || 0),
+        taxa_acerto: Math.round(user.taxa_acerto || 0),
+        ultimo_login: user.ultimo_login
+      }))
+    });
+
+  } catch (error) {
+    console.error('Erro ao gerar relatório:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao gerar relatório'
     });
   }
 });

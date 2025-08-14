@@ -1,24 +1,41 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Home from './pages/Home';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { CategoriesProvider } from './contexts/CategoriesContext';
+import { LogoProvider } from './contexts/LogoContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { supabase } from './lib/supabase';
+import './styles/App.css';
+
+// Componentes de páginas
 import Login from './pages/Login';
 import Cadastro from './pages/Cadastro';
+import Dashboard from './pages/Dashboard';
 import Questoes from './pages/Questoes';
-import QuestaoDetalhe from './pages/QuestaoDetalhe';
-import Perfil from './pages/Perfil';
 import Ranking from './pages/Ranking';
 import Planos from './pages/Planos';
-import AdminDashboard from './pages/admin/Dashboard';
+import Perfil from './pages/Perfil';
+import Estatisticas from './pages/Estatisticas';
+import Admin from './pages/admin/Admin';
+import AdminUsuarios from './pages/admin/AdminUsuarios';
+import AdminQuestoes from './pages/admin/AdminQuestoes';
+import AdminRelatorios from './pages/admin/AdminRelatorios';
+import AdminConfiguracoes from './pages/admin/AdminConfiguracoes';
+import AdminPlanos from './pages/admin/AdminPlanos';
+import AdminCategorias from './pages/admin/AdminCategorias';
+import AdminComentarios from './pages/admin/AdminComentarios';
+import AdminScripts from './pages/admin/AdminScripts';
+import AdminNotificacoes from './pages/admin/AdminNotificacoes';
+import AdminDicasEstudo from './pages/admin/AdminDicasEstudo';
+import AdminPoliticasTermos from './pages/admin/AdminPoliticasTermos';
+import AdminDesign from './pages/admin/AdminDesign';
+import PoliticasPrivacidade from './pages/PoliticasPrivacidade';
+import TermosUso from './pages/TermosUso';
 import LoadingSpinner from './components/LoadingSpinner';
+import Layout from './components/Layout';
 
-// Componente para rotas protegidas
-const ProtectedRoute: React.FC<{ children: React.ReactNode; requireGestor?: boolean }> = ({ 
-  children, 
-  requireGestor = false 
-}) => {
+// Componente de rota protegida
+const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -29,65 +46,191 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; requireGestor?: bool
     return <Navigate to="/login" replace />;
   }
 
-  if (requireGestor && user.tipo_usuario !== 'gestor') {
-    return <Navigate to="/" replace />;
+  if (requireAdmin && user.tipo_usuario !== 'gestor') {
+    return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  return children;
 };
 
-const App: React.FC = () => {
+// Componente principal da aplicação
+const AppContent = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen bg-[#1b1b1b] flex items-center justify-center">
+        <LoadingSpinner size="lg" color="white" />
+      </div>
+    );
   }
 
   return (
-    <div className="app">
-      <Header />
-      <main className="main-content">
+    <Router>
+      <div className="App">
         <Routes>
           {/* Rotas públicas */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/cadastro" element={<Cadastro />} />
-          <Route path="/questoes" element={<Questoes />} />
-          <Route path="/questoes/:id" element={<QuestaoDetalhe />} />
-          <Route path="/ranking" element={<Ranking />} />
-          <Route path="/planos" element={<Planos />} />
-
-          {/* Rotas protegidas (usuários logados) */}
-          <Route 
-            path="/perfil" 
-            element={
-              <ProtectedRoute>
+          <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+          <Route path="/cadastro" element={user ? <Navigate to="/dashboard" replace /> : <Cadastro />} />
+          
+          {/* Rota raiz - redireciona baseado no status de autenticação */}
+          <Route path="/" element={
+            user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+          } />
+          
+          {/* Rotas protegidas para usuários */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/questoes" element={
+            <ProtectedRoute>
+              <Layout>
+                <Questoes />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/estatisticas" element={
+            <ProtectedRoute>
+              <Layout>
+                <Estatisticas />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/ranking" element={
+            <ProtectedRoute>
+              <Layout>
+                <Ranking />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/planos" element={
+            <ProtectedRoute>
+              <Layout>
+                <Planos />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/perfil" element={
+            <ProtectedRoute>
+              <Layout>
                 <Perfil />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Rotas de administrador */}
-          <Route 
-            path="/admin/*" 
-            element={
-              <ProtectedRoute requireGestor>
-                <Routes>
-                  <Route path="/" element={<AdminDashboard />} />
-                  <Route path="/dashboard" element={<AdminDashboard />} />
-                  {/* Adicionar outras rotas admin aqui */}
-                </Routes>
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Rota 404 */}
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Rotas protegidas para administradores */}
+          <Route path="/admin" element={
+            <ProtectedRoute requireAdmin={true}>
+              <Admin />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/usuarios" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminUsuarios />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/questoes" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminQuestoes />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/relatorios" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminRelatorios />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/configuracoes" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminConfiguracoes />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/planos" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminPlanos />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/categorias" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminCategorias />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/comentarios" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminComentarios />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/scripts" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminScripts />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/notificacoes" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminNotificacoes />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/dicas-estudo" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminDicasEstudo />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/politicas-termos" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminPoliticasTermos />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/design" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminDesign />
+            </ProtectedRoute>
+          } />
+          
+          {/* Rotas públicas para políticas e termos */}
+          <Route path="/politicas-privacidade" element={<PoliticasPrivacidade />} />
+          <Route path="/termos-uso" element={<TermosUso />} />
+          
+          {/* Rota para capturar rotas não encontradas */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </Router>
   );
 };
+
+// Componente principal com providers
+function App() {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <CategoriesProvider>
+          <LogoProvider>
+            <AppContent />
+          </LogoProvider>
+        </CategoriesProvider>
+      </ThemeProvider>
+    </AuthProvider>
+  );
+}
 
 export default App;

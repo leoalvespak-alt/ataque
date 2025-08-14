@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, LoginData, CadastroData, AuthResponse } from '../types';
-import { authService } from '../services/authService';
-import { toast } from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -24,52 +23,137 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Verificar token ao inicializar
+  // Verificar sessão ao inicializar
   useEffect(() => {
     const initializeAuth = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-
-      if (storedToken && storedUser) {
-        try {
-          // Verificar se o token ainda é válido
-          const response = await authService.verificarToken(storedToken);
-          if (response.valid) {
-            setToken(storedToken);
-            setUser(response.user);
-          } else {
-            // Token inválido, limpar dados
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-          }
-        } catch (error) {
-          console.error('Erro ao verificar token:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+      try {
+        console.log('Inicializando autenticação...');
+        // Obter sessão atual
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        console.log('Sessão:', session);
+        console.log('Erro:', error);
+        
+        if (session && !error) {
+          setToken(session.access_token);
+          
+          // TEMPORÁRIO: Criar usuário básico sem buscar da tabela
+          const basicUser = {
+            id: session.user.id,
+            nome: session.user.user_metadata?.nome || 'Usuário',
+            email: session.user.email || '',
+            tipo_usuario: session.user.user_metadata?.tipo_usuario || 'aluno',
+            status: 'ativo',
+            xp: 0,
+            questoes_respondidas: 0,
+            ultimo_login: null,
+            profile_picture_url: null,
+            ativo: true,
+            created_at: session.user.created_at,
+            updated_at: session.user.updated_at
+          };
+          
+          setUser(basicUser);
+          console.log('Usuário básico criado:', basicUser);
         }
+      } catch (error) {
+        console.error('Erro ao inicializar autenticação:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initializeAuth();
+
+    // Escutar mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Mudança de autenticação:', event, session);
+        try {
+          if (event === 'SIGNED_IN' && session) {
+            setToken(session.access_token);
+            
+            // TEMPORÁRIO: Criar usuário básico sem buscar da tabela
+            const basicUser = {
+              id: session.user.id,
+              nome: session.user.user_metadata?.nome || 'Usuário',
+              email: session.user.email || '',
+              tipo_usuario: session.user.user_metadata?.tipo_usuario || 'aluno',
+              status: 'ativo',
+              xp: 0,
+              questoes_respondidas: 0,
+              ultimo_login: null,
+              profile_picture_url: null,
+              ativo: true,
+              created_at: session.user.created_at,
+              updated_at: session.user.updated_at
+            };
+            
+            setUser(basicUser);
+            console.log('Usuário básico criado no onAuthStateChange:', basicUser);
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            setToken(null);
+          }
+        } catch (error) {
+          console.error('Erro no onAuthStateChange:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (data: LoginData): Promise<boolean> => {
+    const login = async (data: LoginData): Promise<boolean> => {
     try {
+      console.log('Iniciando login com:', data.email);
       setLoading(true);
-      const response: AuthResponse = await authService.login(data);
       
-      setUser(response.user);
-      setToken(response.token);
+      // Fazer login com Supabase
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.senha
+      });
       
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      console.log('Resposta do Supabase Auth:', { authData, error });
       
-      toast.success(response.message);
-      return true;
+      if (error) {
+        console.error('Erro no Supabase Auth:', error);
+        throw error;
+      }
+      
+              if (authData.session) {
+          console.log('Sessão criada, criando usuário básico...');
+          setToken(authData.session.access_token);
+          
+          // TEMPORÁRIO: Criar usuário básico sem buscar da tabela
+          const basicUser = {
+            id: authData.user.id,
+            nome: authData.user.user_metadata?.nome || 'Usuário',
+            email: authData.user.email || '',
+            tipo_usuario: authData.user.user_metadata?.tipo_usuario || 'aluno',
+            status: 'ativo',
+            xp: 0,
+            questoes_respondidas: 0,
+            ultimo_login: null,
+            profile_picture_url: null,
+            ativo: true,
+            created_at: authData.user.created_at,
+            updated_at: authData.user.updated_at
+          };
+          
+          setUser(basicUser);
+          console.log('Login realizado com sucesso!');
+          return true;
+        } else {
+        console.log('Nenhuma sessão criada');
+        return false;
+      }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Erro ao fazer login';
-      toast.error(errorMessage);
+      const errorMessage = error.message || 'Erro ao fazer login';
+      console.error('Erro no login:', errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -79,19 +163,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const cadastro = async (data: CadastroData): Promise<boolean> => {
     try {
       setLoading(true);
-      const response: AuthResponse = await authService.cadastro(data);
       
-      setUser(response.user);
-      setToken(response.token);
+      // Criar usuário no Supabase Auth
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.senha,
+        options: {
+          data: {
+            nome: data.nome
+          }
+        }
+      });
       
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      if (error) {
+        throw error;
+      }
       
-      toast.success(response.message);
-      return true;
+      if (authData.user) {
+        // Criar registro na tabela usuarios
+        const { data: userData, error: userError } = await supabase
+          .from('usuarios')
+          .insert({
+            id: authData.user.id,
+            nome: data.nome,
+            email: data.email,
+            tipo_usuario: 'aluno',
+            status: 'gratuito',
+            xp: 0,
+            questoes_respondidas: 0
+          })
+          .select()
+          .single();
+        
+        if (userData && !userError) {
+          setUser(userData);
+          if (authData.session) {
+            setToken(authData.session.access_token);
+          }
+          console.log('Cadastro realizado com sucesso!');
+          return true;
+        }
+      }
+      
+      return false;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Erro ao fazer cadastro';
-      toast.error(errorMessage);
+      const errorMessage = error.message || 'Erro ao fazer cadastro';
+      console.error(errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -99,18 +216,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    toast.success('Logout realizado com sucesso!');
+    try {
+      supabase.auth.signOut().then(({ error }) => {
+        if (!error) {
+          setUser(null);
+          setToken(null);
+          console.log('Logout realizado com sucesso!');
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
     }
   };
 

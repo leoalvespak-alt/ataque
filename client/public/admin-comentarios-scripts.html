@@ -24,7 +24,7 @@
             const token = localStorage.getItem('token');
             
             // Carregar estatísticas dos comentários
-            const response = await fetch('http://localhost:3002/api/admin/comentarios?limit=1', {
+            const response = await fetch('/api/admin/comentarios?limit=1', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -58,7 +58,7 @@
             const status = document.getElementById('filtroStatus').value;
             const tipo = document.getElementById('filtroTipo').value;
             
-            let url = `http://localhost:3002/api/admin/comentarios?page=${comentariosPagina}&limit=10`;
+            let url = `/api/admin/comentarios?page=${comentariosPagina}&limit=10`;
             if (status) url += `&status=${status}`;
             if (tipo) url += `&tipo=${tipo}`;
             
@@ -292,7 +292,7 @@
             const token = localStorage.getItem('token');
             const resposta = document.getElementById('modalResposta').value.trim();
             
-            let url = `http://localhost:3002/api/admin/comentarios/${comentarioSelecionado.id}`;
+            let url = `/api/admin/comentarios/${comentarioSelecionado.id}`;
             let method = 'PUT';
             let body = {};
             
@@ -344,7 +344,7 @@
         try {
             const token = localStorage.getItem('token');
             
-            const response = await fetch(`http://localhost:3002/api/admin/comentarios/${comentarioSelecionado.id}/responder`, {
+            const response = await fetch(`/api/admin/comentarios/${comentarioSelecionado.id}/responder`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -382,7 +382,7 @@
         try {
             const token = localStorage.getItem('token');
             
-            const response = await fetch(`http://localhost:3002/api/admin/comentarios/${comentarioId}`, {
+            const response = await fetch(`/api/admin/comentarios/${comentarioId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

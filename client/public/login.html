@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Rota de Ataque Questões</title>
+    <title>Login - Rota de Ataque</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=Aptos:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         * {
             margin: 0;
@@ -11,300 +20,392 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --background: #1b1b1b;
+            --text-primary: #f2f2f2;
+            --text-secondary: #f2f2f2;
+            --highlight: #8b0000;
+            --card-background: #242424;
+            --border-color: #333333;
+            --success: #00c853;
+            --warning: #ffab00;
+            --error: #d50000;
+            --transition: all 0.3s ease-in-out;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1b1b1b;
-            color: #f2f2f2;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #2a2a2a 100%);
+            color: var(--text-primary);
             line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Header */
-        .header {
-            background-color: rgba(27, 27, 27, 0.95);
-            backdrop-filter: blur(10px);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            border-bottom: 2px solid #c1121f;
-            transition: all 0.3s ease;
-        }
-
-        .header-content {
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 1rem 0;
+            justify-content: center;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #c1121f;
-            text-decoration: none;
+            font-family: 'Saira', sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+            color: var(--highlight);
+            margin-bottom: 8px;
         }
 
-        .nav {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav a {
-            color: #f2f2f2;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-            position: relative;
-        }
-
-        .nav a:hover {
-            color: #c1121f;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-top: 80px;
-            min-height: calc(100vh - 160px);
-            padding: 2rem 0;
-        }
-
-        /* Login Form */
-        .login-container {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 2rem;
-            background-color: #2a2a2a;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #f2f2f2;
+        .login-subtitle {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 1rem;
+            color: var(--text-secondary);
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
         }
 
-        .form-group label {
+        .form-label {
             display: block;
-            margin-bottom: 0.5rem;
+            font-family: 'Saira', sans-serif;
             font-weight: 600;
-            color: #f2f2f2;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
         }
 
-        .form-group input {
+        .form-input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #333;
-            border-radius: 8px;
-            background-color: #1b1b1b;
-            color: #f2f2f2;
+            padding: 12px 16px;
+            background-color: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: 'Aptos', 'Calibre', sans-serif;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
+            transition: var(--transition);
         }
 
-        .form-group input:focus {
+        .form-input:focus {
             outline: none;
-            border-color: #c1121f;
+            border-color: var(--highlight);
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.2);
         }
 
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #c1121f;
-            color: #f2f2f2;
-            text-decoration: none;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .login-button {
             width: 100%;
+            padding: 14px 24px;
+            background-color: var(--highlight);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 6px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 16px;
         }
 
-        .btn:hover {
-            background-color: #a0101a;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(193, 18, 31, 0.3);
+        .login-button:hover {
+            background-color: #f2f2f2;
+            transform: translateY(-1px);
+        }
+
+        .login-button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 24px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        .divider span {
+            background-color: var(--card-background);
+            padding: 0 16px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .register-link a {
+            color: var(--highlight);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .register-link a:hover {
+            color: #f2f2f2;
         }
 
         .message {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+            display: none;
         }
 
         .message.success {
-            background-color: #28a745;
-            color: white;
+            background-color: rgba(0, 200, 83, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
         }
 
         .message.error {
-            background-color: #dc3545;
-            color: white;
+            background-color: rgba(213, 0, 0, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
         }
 
-        .login-links {
+        .demo-credentials {
+            background-color: rgba(139, 0, 0, 0.1);
+            border: 1px solid var(--highlight);
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .demo-credentials h4 {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--highlight);
+            margin-bottom: 8px;
+        }
+
+        .demo-credentials p {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .loading {
+            display: none;
             text-align: center;
-            margin-top: 1.5rem;
+            margin-top: 16px;
         }
 
-        .login-links a {
-            color: #c1121f;
-            text-decoration: none;
-            margin: 0 1rem;
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--highlight);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 8px;
         }
 
-        .login-links a:hover {
-            text-decoration: underline;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Footer */
-        .footer {
-            background-color: #0f0f0f;
-            padding: 2rem 0;
-            text-align: center;
-            border-top: 1px solid #333;
-        }
-
-        .credentials-info {
-            background-color: #1b1b1b;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1.5rem;
-            border-left: 4px solid #c1121f;
-        }
-
-        .credentials-info h4 {
-            color: #c1121f;
-            margin-bottom: 0.5rem;
-        }
-
-        .credentials-info p {
-            color: #ccc;
-            font-size: 0.9rem;
-            margin-bottom: 0.25rem;
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 16px;
+            }
+            
+            .login-card {
+                padding: 24px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">Rota de Ataque Questões</div>
-                <nav class="nav">
-                    <a href="/">Início</a>
-                    <a href="/questoes">Questões</a>
-                    <a href="/ranking">Ranking</a>
-                    <a href="/planos">Planos</a>
-                    <a href="/cadastro">Cadastro</a>
-                </nav>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <img src="/logo-ataque.png" alt="Rota de Ataque" style="height: 60px; width: auto;">
+                </div>
+                <p class="login-subtitle">Faça login para continuar</p>
             </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container">
-            <div class="login-container">
-                <h2>🔐 Entrar na Plataforma</h2>
-                <div id="message"></div>
-                
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Senha</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    
-                    <button type="submit" class="btn">Entrar</button>
-                </form>
-                
-                <div class="login-links">
-                    <a href="/cadastro">Criar conta</a>
-                    <a href="#">Esqueci minha senha</a>
+            <div id="message" class="message"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email" class="form-label">E-mail</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="Seu e-mail" required>
                 </div>
-                
-                <div class="credentials-info">
-                    <h4>🔑 Credenciais de Teste</h4>
-                    <p><strong>Admin:</strong> admin@example.com / admin123</p>
-                    <p><strong>Aluno:</strong> joao@teste.com / 123456</p>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Senha</label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Sua senha" required>
                 </div>
+
+                <button type="submit" class="login-button" id="loginButton">
+                    <span class="button-text">Entrar</span>
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Fazendo login...</p>
+            </div>
+
+            <div class="divider">
+                <span>ou</span>
+            </div>
+
+            <div class="register-link">
+                <p>Não tem uma conta? <a href="/cadastro">Cadastre-se</a></p>
+            </div>
+
+            <div class="demo-credentials">
+                <h4>Credenciais de Teste</h4>
+                <p><strong>Admin:</strong> admin@rotadeataque.com / 123456</p>
+                <p><strong>Aluno:</strong> joao@teste.com / 123456</p>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Rota de Ataque Questões. Todos os direitos reservados.</p>
-        </div>
-    </footer>
-
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const loginForm = document.getElementById('loginForm');
+        const loginButton = document.getElementById('loginButton');
+        const loading = document.getElementById('loading');
+        const message = document.getElementById('message');
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+        }
+
+        function hideMessage() {
+            message.style.display = 'none';
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loginButton.disabled = true;
+                loginButton.querySelector('.button-text').textContent = '';
+                loading.style.display = 'block';
+            } else {
+                loginButton.disabled = false;
+                loginButton.querySelector('.button-text').textContent = 'Entrar';
+                loading.style.display = 'none';
+            }
+        }
+
+        loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const messageDiv = document.getElementById('message');
-            messageDiv.innerHTML = ''; // Limpar mensagens anteriores
 
-            const loginButton = this.querySelector('button[type="submit"]');
-            const originalButtonText = loginButton.textContent;
-            loginButton.textContent = 'Entrando...';
-            loginButton.disabled = true;
+            if (!email || !password) {
+                showMessage('Por favor, preencha todos os campos.', 'error');
+                return;
+            }
 
-            fetch('http://localhost:3002/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, senha: password })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.token) {
+            setLoading(true);
+            hideMessage();
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, senha: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Salvar token
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-
-                    messageDiv.innerHTML = '<div class="message success">✅ Login realizado com sucesso! Redirecionando...</div>';
                     
+                    showMessage('Login realizado com sucesso! Redirecionando...', 'success');
+                    
+                    // Redirecionar baseado no tipo de usuário
                     setTimeout(() => {
                         if (data.user.tipo_usuario === 'gestor') {
                             window.location.href = '/admin';
                         } else {
-                            window.location.href = '/questoes';
+                            window.location.href = '/';
                         }
                     }, 1500);
                 } else {
-                    messageDiv.innerHTML = `<div class="message error">❌ ${data.message || 'Erro ao fazer login.'}</div>`;
+                    showMessage(data.message || 'E-mail ou senha incorretos.', 'error');
                 }
-            })
-            .catch(error => {
-                console.error('Erro de rede ou servidor:', error);
-                messageDiv.innerHTML = '<div class="message error">❌ Erro ao conectar com o servidor. Tente novamente mais tarde.</div>';
-            })
-            .finally(() => {
-                loginButton.textContent = originalButtonText;
-                loginButton.disabled = false;
-            });
+            } catch (error) {
+                console.error('Erro no login:', error);
+                showMessage('Erro de conexão. Tente novamente.', 'error');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Verificar se já está logado
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Verificar se o token ainda é válido
+                fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const user = JSON.parse(localStorage.getItem('user'));
+                        if (user.tipo_usuario === 'gestor') {
+                            window.location.href = '/admin';
+                        } else {
+                            window.location.href = '/';
+                        }
+                    }
+                })
+                .catch(() => {
+                    // Token inválido, limpar localStorage
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                });
+            }
         });
     </script>
 </body>

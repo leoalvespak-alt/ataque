@@ -77,7 +77,7 @@ async function testarAutenticacao() {
             return;
         }
         
-        const response = await fetch('http://localhost:3002/api/auth/verify', {
+        const response = await fetch('/api/auth/verify', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -96,7 +96,7 @@ async function testarAutenticacao() {
 // Funções do Dashboard
 async function carregarDashboard() {
     try {
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/dashboard');
+        const response = await fetchAuthenticated('/api/admin/dashboard');
         if (!response.ok) throw new Error('Erro ao carregar dados do dashboard');
         
         const data = await response.json();
@@ -161,7 +161,7 @@ async function carregarDashboard() {
 async function carregarQuestoes() {
     try {
         console.log('Tentando carregar questões...');
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/questoes');
+        const response = await fetchAuthenticated('/api/admin/questoes');
         console.log('Resposta do servidor:', response);
         
         if (!response.ok) {
@@ -203,7 +203,7 @@ async function carregarQuestoes() {
 
 async function carregarDadosQuestao(id) {
     try {
-        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/questoes/${id}`);
+        const response = await fetchAuthenticated(`/api/admin/questoes/${id}`);
         if (!response.ok) throw new Error('Erro ao carregar dados da questão');
         
         const questao = await response.json();
@@ -266,8 +266,8 @@ async function salvarQuestao() {
         };
 
         const url = id 
-            ? `http://localhost:3002/api/admin/questoes/${id}`
-            : 'http://localhost:3002/api/admin/questoes';
+            ? `/api/admin/questoes/${id}`
+            : '/api/admin/questoes';
         
         const response = await fetchAuthenticated(url, {
             method: id ? 'PUT' : 'POST',
@@ -289,7 +289,7 @@ async function excluirQuestao(id) {
     if (!confirm('Tem certeza que deseja excluir esta questão?')) return;
     
     try {
-        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/questoes/${id}`, {
+        const response = await fetchAuthenticated(`/api/admin/questoes/${id}`, {
             method: 'DELETE'
         });
 
@@ -310,7 +310,7 @@ function editarQuestao(id) {
 // Funções de Categorias
 async function carregarDisciplinas() {
     try {
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/disciplinas');
+        const response = await fetchAuthenticated('/api/admin/disciplinas');
         if (!response.ok) throw new Error('Erro ao carregar disciplinas');
         
         const data = await response.json();
@@ -358,8 +358,8 @@ async function carregarAssuntos() {
         console.log('Tentando carregar assuntos...');
         const disciplinaId = document.getElementById('disciplina').value;
         const url = disciplinaId 
-            ? `http://localhost:3002/api/admin/assuntos?disciplina=${disciplinaId}`
-            : 'http://localhost:3002/api/admin/assuntos';
+            ? `/api/admin/assuntos?disciplina=${disciplinaId}`
+            : '/api/admin/assuntos';
             
         console.log('URL para carregar assuntos:', url);
         const response = await fetchAuthenticated(url);
@@ -413,7 +413,7 @@ async function carregarAssuntos() {
 
 async function carregarBancas() {
     try {
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/bancas');
+        const response = await fetchAuthenticated('/api/admin/bancas');
         if (!response.ok) throw new Error('Erro ao carregar bancas');
         
         const data = await response.json();
@@ -455,7 +455,7 @@ async function carregarBancas() {
 
 async function carregarOrgaos() {
     try {
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/orgaos');
+        const response = await fetchAuthenticated('/api/admin/orgaos');
         if (!response.ok) throw new Error('Erro ao carregar órgãos');
         
         const data = await response.json();
@@ -538,8 +538,8 @@ async function salvarCategoria() {
         };
         
         const url = id 
-            ? `http://localhost:3002/api/admin/${tipo}s/${id}`
-            : `http://localhost:3002/api/admin/${tipo}s`;
+            ? `/api/admin/${tipo}s/${id}`
+            : `/api/admin/${tipo}s`;
             
         const response = await fetchAuthenticated(url, {
             method: id ? 'PUT' : 'POST',
@@ -576,7 +576,7 @@ async function excluirCategoria(tipo, id) {
     if (!confirm(`Tem certeza que deseja excluir esta ${tipo}?`)) return;
     
     try {
-        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/${tipo}s/${id}`, {
+        const response = await fetchAuthenticated(`/api/admin/${tipo}s/${id}`, {
             method: 'DELETE'
         });
 
@@ -608,7 +608,7 @@ async function excluirCategoria(tipo, id) {
 // Funções de Usuários
 async function carregarUsuarios() {
     try {
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/usuarios');
+        const response = await fetchAuthenticated('/api/admin/usuarios');
         if (!response.ok) throw new Error('Erro ao carregar usuários');
         
         const usuarios = await response.json();
@@ -646,7 +646,7 @@ async function carregarUsuarios() {
 
 async function editarUsuario(id) {
     try {
-        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/usuarios/${id}`);
+        const response = await fetchAuthenticated(`/api/admin/usuarios/${id}`);
         if (!response.ok) throw new Error('Erro ao carregar dados do usuário');
         
         const usuario = await response.json();
@@ -673,7 +673,7 @@ async function salvarUsuario() {
             status: document.getElementById('usuarioStatus').value
         };
         
-        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/usuarios/${id}`, {
+        const response = await fetchAuthenticated(`/api/admin/usuarios/${id}`, {
             method: 'PUT',
             body: JSON.stringify(dados)
         });
@@ -693,7 +693,7 @@ async function alternarStatusUsuario(id, novoStatus) {
     if (!confirm(`Tem certeza que deseja ${novoStatus === 'ativo' ? 'ativar' : 'suspender'} este usuário?`)) return;
     
     try {
-        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/usuarios/${id}/status`, {
+        const response = await fetchAuthenticated(`/api/admin/usuarios/${id}/status`, {
             method: 'PUT',
             body: JSON.stringify({ status: novoStatus })
         });
@@ -711,7 +711,7 @@ async function alternarStatusUsuario(id, novoStatus) {
 // Funções de Planos
 async function carregarPlanos() {
     try {
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/planos');
+        const response = await fetchAuthenticated('/api/admin/planos');
         if (!response.ok) throw new Error('Erro ao carregar planos');
         
         const planos = await response.json();
@@ -756,7 +756,7 @@ function abrirModalNovoPlano() {
 
 async function editarPlano(id) {
     try {
-        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/planos/${id}`);
+        const response = await fetchAuthenticated(`/api/admin/planos/${id}`);
         if (!response.ok) throw new Error('Erro ao carregar dados do plano');
         
         const plano = await response.json();
@@ -784,8 +784,8 @@ async function salvarPlano() {
         };
         
         const url = id 
-            ? `http://localhost:3002/api/admin/planos/${id}`
-            : 'http://localhost:3002/api/admin/planos';
+            ? `/api/admin/planos/${id}`
+            : '/api/admin/planos';
             
         const response = await fetchAuthenticated(url, {
             method: id ? 'PUT' : 'POST',
@@ -807,7 +807,7 @@ async function alternarStatusPlano(id, novoStatus) {
     if (!confirm(`Tem certeza que deseja ${novoStatus === 'ativo' ? 'ativar' : 'desativar'} este plano?`)) return;
     
     try {
-        const response = await fetchAuthenticated(`http://localhost:3002/api/admin/planos/${id}/status`, {
+        const response = await fetchAuthenticated(`/api/admin/planos/${id}/status`, {
             method: 'PUT',
             body: JSON.stringify({ status: novoStatus })
         });
@@ -837,7 +837,7 @@ async function salvarConfiguracoes(e) {
             formData.append('favicon', favicon);
         }
         
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/configuracoes', {
+        const response = await fetchAuthenticated('/api/admin/configuracoes', {
             method: 'PUT',
             body: formData,
             headers: {} // Remover Content-Type para permitir que o navegador defina o boundary do multipart/form-data
@@ -911,7 +911,7 @@ function abrirModalNovoOrgao() {
 // Função para carregar disciplinas no select do modal de assuntos
 async function carregarDisciplinasParaSelect() {
     try {
-        const response = await fetchAuthenticated('http://localhost:3002/api/admin/disciplinas');
+        const response = await fetchAuthenticated('/api/admin/disciplinas');
         if (!response.ok) throw new Error('Erro ao carregar disciplinas');
         
         const data = await response.json();
@@ -959,8 +959,8 @@ async function salvarCategoria() {
         }
         
         const url = id 
-            ? `http://localhost:3002/api/admin/${tipo}s/${id}`
-            : `http://localhost:3002/api/admin/${tipo}s`;
+            ? `/api/admin/${tipo}s/${id}`
+            : `/api/admin/${tipo}s`;
             
         const response = await fetchAuthenticated(url, {
             method: id ? 'PUT' : 'POST',
@@ -996,7 +996,7 @@ async function salvarCategoria() {
 // Função para carregar categorias no formulário de questões
 async function carregarCategoriasParaQuestao() {
     try {
-        const response = await fetchAuthenticated('http://localhost:3002/api/categories/todas');
+        const response = await fetchAuthenticated('/api/categories/todas');
         if (!response.ok) throw new Error('Erro ao carregar categorias');
         
         const data = await response.json();
@@ -1045,7 +1045,7 @@ async function carregarAssuntosPorDisciplina(disciplinaId) {
         
         if (!disciplinaId) return;
         
-        const response = await fetchAuthenticated(`http://localhost:3002/api/categories/assuntos/${disciplinaId}`);
+        const response = await fetchAuthenticated(`/api/categories/assuntos/${disciplinaId}`);
         if (!response.ok) throw new Error('Erro ao carregar assuntos');
         
         const data = await response.json();
@@ -1106,8 +1106,8 @@ async function salvarQuestao() {
         }
         
         const url = id 
-            ? `http://localhost:3002/api/admin/questoes/${id}`
-            : 'http://localhost:3002/api/admin/questoes';
+            ? `/api/admin/questoes/${id}`
+            : '/api/admin/questoes';
             
         const response = await fetchAuthenticated(url, {
             method: id ? 'PUT' : 'POST',

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=Aptos:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: #1b1b1b;
+            --text-primary: #f2f2f2;
+            --text-secondary: #f2f2f2;
+            --highlight: #8b0000;
+            --card-background: #242424;
+            --border-color: #333333;
+            --success: #00c853;
+            --warning: #ffab00;
+            --error: #d50000;
+            --transition: all 0.3s ease-in-out;
+        }
+
+        body {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .admin-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+            color: var(--text-primary);
+        }
+
+        .back-btn {
+            background-color: var(--highlight);
+            color: var(--text-primary);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background-color: #a00000;
+        }
+
+        .export-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn:hover {
+            background-color: #00a844;
+        }
+
+        .filters-section {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .filter-input {
+            padding: 10px 12px;
+            background-color: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.875rem;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--highlight);
+        }
+
+        .generate-btn {
+            background-color: var(--highlight);
+            color: var(--text-primary);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .generate-btn:hover {
+            background-color: #a00000;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .report-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .report-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            background-color: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Saira', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--highlight);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .table-section {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .table-header {
+            background-color: var(--background);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .table-content {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--background);
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        td {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .message.success {
+            background-color: rgba(0, 200, 83, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .message.error {
+            background-color: rgba(213, 0, 0, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--highlight);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 20px;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-content {
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Relatórios Detalhados</h1>
+            <div style="display: flex; gap: 12px;">
+                <a href="/admin" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Voltar ao Admin
+                </a>
+                <button class="export-btn" onclick="exportReport()">
+                    <i class="fas fa-download"></i>
+                    Exportar PDF
+                </button>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <!-- Filtros -->
+        <div class="filters-section">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Período</label>
+                    <select id="periodFilter" class="filter-input">
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="30" selected>Últimos 30 dias</option>
+                        <option value="90">Últimos 90 dias</option>
+                        <option value="365">Último ano</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Tipo de Relatório</label>
+                    <select id="reportTypeFilter" class="filter-input">
+                        <option value="general">Geral</option>
+                        <option value="users">Usuários</option>
+                        <option value="questions">Questões</option>
+                        <option value="performance">Performance</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Disciplina</label>
+                    <select id="disciplinaFilter" class="filter-input">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <button class="generate-btn" onclick="generateReport()">
+                    <i class="fas fa-chart-bar"></i>
+                    Gerar Relatório
+                </button>
+            </div>
+        </div>
+
+        <!-- Estatísticas Gerais -->
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">Usuários Ativos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalQuestions">0</div>
+                <div class="stat-label">Questões Cadastradas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalAnswers">0</div>
+                <div class="stat-label">Respostas Dadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="avgAccuracy">0%</div>
+                <div class="stat-label">Taxa de Acerto Média</div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="reports-grid">
+            <div class="report-card">
+                <h3 class="report-title">
+                    <i class="fas fa-users"></i>
+                    Crescimento de Usuários
+                </h3>
+                <div class="chart-container">
+                    <canvas id="usersChart"></canvas>
+                </div>
+            </div>
+
+            <div class="report-card">
+                <h3 class="report-title">
+                    <i class="fas fa-question-circle"></i>
+                    Questões por Disciplina
+                </h3>
+                <div class="chart-container">
+                    <canvas id="questionsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="report-card">
+                <h3 class="report-title">
+                    <i class="fas fa-chart-line"></i>
+                    Performance por Mês
+                </h3>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="report-card">
+                <h3 class="report-title">
+                    <i class="fas fa-pie-chart"></i>
+                    Distribuição de Usuários
+                </h3>
+                <div class="chart-container">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Top Usuários -->
+        <div class="table-section">
+            <div class="table-header">
+                <h2 class="table-title">Top 10 Usuários - Performance</h2>
+            </div>
+            <div class="table-content">
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Carregando relatórios...</p>
+                </div>
+                <table id="topUsersTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Posição</th>
+                            <th>Usuário</th>
+                            <th>XP</th>
+                            <th>Questões Respondidas</th>
+                            <th>Taxa de Acerto</th>
+                            <th>Último Login</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topUsersTableBody">
+                        <!-- Dados serão carregados aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+
+        // Verificar se está logado como admin
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!token || user.tipo_usuario !== 'gestor') {
+                window.location.href = '/login';
+                return;
+            }
+
+            loadFilters();
+            generateReport();
+        });
+
+        function loadFilters() {
+            // Carregar disciplinas
+            fetch('/api/admin/disciplinas', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('disciplinaFilter');
+                data.disciplinas.forEach(disciplina => {
+                    const option = document.createElement('option');
+                    option.value = disciplina.id;
+                    option.textContent = disciplina.nome;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Erro ao carregar disciplinas:', error));
+        }
+
+        function generateReport() {
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('topUsersTable');
+
+            loading.style.display = 'block';
+            table.style.destroy = 'none';
+
+            const period = document.getElementById('periodFilter').value;
+            const reportType = document.getElementById('reportTypeFilter').value;
+            const disciplina = document.getElementById('disciplinaFilter').value;
+
+            // Carregar dados do relatório
+            fetch(`/api/admin/reports?period=${period}&type=${reportType}&disciplina=${disciplina}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    updateStats(data.stats);
+                    updateCharts(data.charts);
+                    updateTopUsers(data.topUsers);
+                    table.style.display = 'table';
+                } else {
+                    showMessage(data.message || 'Erro ao gerar relatório', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao gerar relatório:', error);
+                loading.style.display = 'none';
+                showMessage('Erro de conexão. Tente novamente.', 'error');
+                
+                // Usar dados mock para demonstração
+                loadMockData();
+            });
+        }
+
+        function loadMockData() {
+            // Dados mock para demonstração
+            const mockStats = {
+                totalUsers: 156,
+                totalQuestions: 2450,
+                totalAnswers: 12890,
+                avgAccuracy: 78
+            };
+
+            const mockCharts = {
+                users: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    data: [120, 135, 142, 148, 152, 156]
+                },
+                questions: {
+                    labels: ['Português', 'Matemática', 'História', 'Geografia', 'Biologia'],
+                    data: [450, 380, 320, 280, 220]
+                },
+                performance: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    data: [72, 75, 78, 76, 79, 78]
+                },
+                distribution: {
+                    labels: ['Gratuito', 'Premium'],
+                    data: [67, 33]
+                }
+            };
+
+            const mockTopUsers = [
+                { nome: 'João Silva', xp: 1250, questoes_respondidas: 89, taxa_acerto: 85, ultimo_login: '2024-01-15' },
+                { nome: 'Maria Santos', xp: 1180, questoes_respondidas: 76, taxa_acerto: 82, ultimo_login: '2024-01-14' },
+                { nome: 'Pedro Costa', xp: 1100, questoes_respondidas: 68, taxa_acerto: 79, ultimo_login: '2024-01-13' }
+            ];
+
+            updateStats(mockStats);
+            updateCharts(mockCharts);
+            updateTopUsers(mockTopUsers);
+            document.getElementById('topUsersTable').style.display = 'table';
+        }
+
+        function updateStats(stats) {
+            document.getElementById('totalUsers').textContent = stats.totalUsers;
+            document.getElementById('totalQuestions').textContent = stats.totalQuestions;
+            document.getElementById('totalAnswers').textContent = stats.totalAnswers;
+            document.getElementById('avgAccuracy').textContent = stats.avgAccuracy + '%';
+        }
+
+        function updateCharts(chartData) {
+            // Destruir gráficos existentes
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+
+            // Gráfico de usuários
+            const usersCtx = document.getElementById('usersChart').getContext('2d');
+            charts.users = new Chart(usersCtx, {
+                type: 'line',
+                data: {
+                    labels: chartData.users.labels,
+                    datasets: [{
+                        label: 'Usuários',
+                        data: chartData.users.data,
+                        borderColor: '#8b0000',
+                        backgroundColor: 'rgba(139, 0, 0, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#f2f2f2' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#f2f2f2' },
+                            grid: { color: '#333333' }
+                        },
+                        x: {
+                            ticks: { color: '#f2f2f2' },
+                            grid: { color: '#333333' }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de questões
+            const questionsCtx = document.getElementById('questionsChart').getContext('2d');
+            charts.questions = new Chart(questionsCtx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.questions.labels,
+                    datasets: [{
+                        label: 'Questões',
+                        data: chartData.questions.data,
+                        backgroundColor: '#8b0000'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#f2f2f2' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#f2f2f2' },
+                            grid: { color: '#333333' }
+                        },
+                        x: {
+                            ticks: { color: '#f2f2f2' },
+                            grid: { color: '#333333' }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de performance
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            charts.performance = new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: chartData.performance.labels,
+                    datasets: [{
+                        label: 'Taxa de Acerto (%)',
+                        data: chartData.performance.data,
+                        borderColor: '#00c853',
+                        backgroundColor: 'rgba(0, 200, 83, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#f2f2f2' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#f2f2f2' },
+                            grid: { color: '#333333' }
+                        },
+                        x: {
+                            ticks: { color: '#f2f2f2' },
+                            grid: { color: '#333333' }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de distribuição
+            const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+            charts.distribution = new Chart(distributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.distribution.labels,
+                    datasets: [{
+                        data: chartData.distribution.data,
+                        backgroundColor: ['#ffab00', '#8b0000']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#f2f2f2' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTopUsers(users) {
+            const tbody = document.getElementById('topUsersTableBody');
+            tbody.innerHTML = '';
+
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${user.nome}</td>
+                    <td>${user.xp}</td>
+                    <td>${user.questoes_respondidas}</td>
+                    <td>${user.taxa_acerto}%</td>
+                    <td>${new Date(user.ultimo_login).toLocaleDateString('pt-BR')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function exportReport() {
+            showMessage('Funcionalidade de exportação em desenvolvimento', 'success');
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

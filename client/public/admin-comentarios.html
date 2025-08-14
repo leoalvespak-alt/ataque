@@ -119,11 +119,11 @@
             text-transform: uppercase;
         }
         
-        .comentario-tipo.duvida { background: #fff3cd; color: #856404; }
-        .comentario-tipo.sugestao { background: #d1ecf1; color: #0c5460; }
-        .comentario-tipo.erro { background: #f8d7da; color: #721c24; }
-        .comentario-tipo.elogio { background: #d4edda; color: #155724; }
-        .comentario-tipo.geral { background: #e2e3e5; color: #383d41; }
+        .comentario-tipo.duvida { background: #fff3cd; color: #f2f2f2; }
+        .comentario-tipo.sugestao { background: #d1ecf1; color: #f2f2f2; }
+        .comentario-tipo.erro { background: #f8d7da; color: #f2f2f2; }
+        .comentario-tipo.elogio { background: #d4edda; color: #f2f2f2; }
+        .comentario-tipo.geral { background: #e2e3e5; color: #f2f2f2; }
         
         .comentario-texto {
             background: #f8f9fa;
@@ -174,12 +174,12 @@
             border-radius: 25px;
             margin: 0 0.25rem;
             border: none;
-            color: #667eea;
+            color: #f2f2f2;
         }
         
         .page-item.active .page-link {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: #667eea;
+            border-color: #333333;
         }
         
         .modal-content {
@@ -199,7 +199,7 @@
         }
         
         .form-control:focus, .form-select:focus {
-            border-color: #667eea;
+            border-color: #333333;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
         
@@ -234,22 +234,22 @@
                 <a class="nav-link" href="admin.html">
                     <i class="bi bi-house"></i> Dashboard
                 </a>
-                <a class="nav-link" href="admin-questoes.html">
+                <a class="nav-link" href="/admin/questoes">
                     <i class="bi bi-question-circle"></i> Questões
                 </a>
-                <a class="nav-link" href="admin-categorias.html">
+                <a class="nav-link" href="/admin/categorias">
                     <i class="bi bi-tags"></i> Categorias
                 </a>
-                <a class="nav-link" href="admin-usuarios.html">
+                <a class="nav-link" href="/admin/usuarios">
                     <i class="bi bi-people"></i> Usuários
                 </a>
-                <a class="nav-link" href="admin-planos.html">
+                <a class="nav-link" href="/admin/planos">
                     <i class="bi bi-credit-card"></i> Planos
                 </a>
-                <a class="nav-link active" href="admin-comentarios.html">
+                <a class="nav-link active" href="/admin/comentarios">
                     <i class="bi bi-chat-dots"></i> Comentários
                 </a>
-                <a class="nav-link" href="admin-configuracoes.html">
+                <a class="nav-link" href="/admin/configuracoes">
                     <i class="bi bi-gear"></i> Configurações
                 </a>
                 <a class="nav-link" href="#" onclick="sair()">
@@ -422,6 +422,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="admin-comentarios-scripts.html"></script>
+    <script src="/admin/comentarios-scripts"></script>
 </body>
 </html>

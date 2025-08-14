@@ -6,27 +6,24 @@
 
 ## 🎯 **COMO INICIAR A PLATAFORMA**
 
-### **1. INICIAR O SERVIDOR MOCK (Backend)**
+### **1. INICIAR O BACKEND (API)**
 Abra um terminal e execute:
 ```bash
-cd C:\rota-de-ataque-questoes\server
-node mock-server.js
+cd C:\rota-de-ataque-questoes
+npm run server
 ```
 
 **Você deve ver:**
 ```
-🚀 Servidor mock rodando na porta 3001
-📊 Dados mock disponíveis:
-   - 2 usuários
-   - 2 questões
-🔗 Acesse: http://localhost:3001/api/health
+🚀 Servidor rodando na porta 3002
+🔗 Acesse: http://localhost:3002/api/health
 ```
 
 ### **2. INICIAR O FRONTEND (Interface)**
 Abra **OUTRO** terminal e execute:
 ```bash
-cd C:\rota-de-ataque-questoes\client
-npm start
+cd C:\rota-de-ataque-questoes
+npm run client
 ```
 
 **Você deve ver:**
@@ -46,8 +43,8 @@ You can now view rota-de-ataque-questoes-client in the browser.
 - **Descrição:** Interface completa da plataforma
 
 ### **Backend (API):**
-- **URL:** http://localhost:3001
-- **Teste:** http://localhost:3001/api/health
+- **URL:** http://localhost:3002
+- **Teste:** http://localhost:3002/api/health
 
 ## 🔑 **CREDENCIAIS DE TESTE**
 
@@ -126,7 +123,7 @@ A plataforma é totalmente responsiva e funciona em:
 3. Tente novamente: `npm start`
 
 ### **Se as portas estiverem ocupadas:**
-- Feche outros terminais que possam estar usando as portas 3000 e 3001
+- Feche outros terminais que possam estar usando as portas 3000 e 3002
 - Reinicie os serviços
 
 ## 🎉 **SUCESSO!**

@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, validationResult, query } = require('express-validator');
-const { Questao, Disciplina, Assunto, Banca, Orgao, RespostaUsuario, ComentarioAluno, User } = require('../models');
+const { Questao, Disciplina, Assunto, Banca, Orgao, RespostaUsuario, ComentarioAluno, User, FavoritoQuestao } = require('../models');
 const { authenticateToken } = require('../middleware/auth');
 const { verificarEAtualizarPatente } = require('./patentes');
 
@@ -437,3 +437,29 @@ router.post('/:id/comentarios', authenticateToken, [
 });
 
 module.exports = router;
+
+// Favoritar/Desfavoritar questão
+router.post('/:id/bookmark', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const questao = await Questao.findByPk(id);
+    if (!questao) {
+      return res.status(404).json({ error: 'Questão não encontrada' });
+    }
+
+    const existing = await FavoritoQuestao.findOne({ where: { usuario_id: userId, questao_id: id } });
+    if (existing) {
+      await FavoritoQuestao.destroy({ where: { usuario_id: userId, questao_id: id } });
+      return res.json({ message: 'Questão removida dos favoritos', favoritado: false });
+    }
+
+    await FavoritoQuestao.create({ usuario_id: userId, questao_id: id });
+    return res.json({ message: 'Questão adicionada aos favoritos', favoritado: true });
+
+  } catch (error) {
+    console.error('Erro ao favoritar questão:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});

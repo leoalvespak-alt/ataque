@@ -11,46 +11,46 @@
     <script src="utils.js"></script>
     <style>
         body {
-            background-color: #1b1b1b;
+            background-color: #f2f2f2;
             color: #f2f2f2;
         }
         .navbar {
-            background-color: #c1121f !important;
+            background-color: #f2f2f2 !important;
         }
         .card {
-            background-color: #2d2d2d;
+            background-color: #f2f2f2;
             border: none;
             margin-bottom: 20px;
         }
         .btn-primary {
-            background-color: #c1121f;
-            border-color: #c1121f;
+            background-color: #f2f2f2;
+            border-color: #333333;
         }
         .btn-primary:hover {
-            background-color: #a30f1a;
-            border-color: #a30f1a;
+            background-color: #f2f2f2;
+            border-color: #333333;
         }
         .table {
             color: #f2f2f2;
         }
         .modal-content {
-            background-color: #2d2d2d;
+            background-color: #f2f2f2;
             color: #f2f2f2;
         }
         .modal-header {
-            border-bottom-color: #3d3d3d;
+            border-bottom-color: #f2f2f2;
         }
         .modal-footer {
-            border-top-color: #3d3d3d;
+            border-top-color: #f2f2f2;
         }
         .form-control, .form-select {
-            background-color: #3d3d3d;
-            border-color: #4d4d4d;
+            background-color: #f2f2f2;
+            border-color: #333333;
             color: #f2f2f2;
         }
         .form-control:focus, .form-select:focus {
-            background-color: #3d3d3d;
-            border-color: #c1121f;
+            background-color: #f2f2f2;
+            border-color: #333333;
             color: #f2f2f2;
             box-shadow: 0 0 0 0.25rem rgba(193, 18, 31, 0.25);
         }
@@ -69,12 +69,12 @@
         .stat-number {
             font-size: 3rem;
             font-weight: 700;
-            color: #c1121f;
+            color: #f2f2f2;
             margin-bottom: 0.5rem;
         }
         .stat-label {
             font-size: 1.1rem;
-            color: #cccccc;
+            color: #f2f2f2;
             font-weight: 500;
         }
         .chart-container {
@@ -88,7 +88,7 @@
             text-align: center;
             padding: 3rem;
             font-size: 1.2rem;
-            color: #cccccc;
+            color: #f2f2f2;
         }
     </style>
 </head>
@@ -107,27 +107,27 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin-questoes.html">
+                        <a class="nav-link" href="/admin/questoes">
                             <i class="bi bi-question-circle"></i> Questões
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin-categorias.html">
+                        <a class="nav-link" href="/admin/categorias">
                             <i class="bi bi-tags"></i> Categorias
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin-usuarios.html">
+                        <a class="nav-link" href="/admin/usuarios">
                             <i class="bi bi-people"></i> Usuários
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin-planos.html">
+                        <a class="nav-link" href="/admin/planos">
                             <i class="bi bi-credit-card"></i> Planos
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin-comentarios.html">
+                        <a class="nav-link" href="/admin/comentarios">
                             <i class="bi bi-chat-dots"></i> Comentários
                         </a>
                     </li>
@@ -288,7 +288,7 @@
         // Função para carregar estatísticas gerais
         async function carregarEstatisticasGerais() {
             try {
-                const response = await fetchAuthenticated('http://localhost:3002/api/admin/dashboard');
+                const response = await fetchAuthenticated('/api/admin/dashboard');
                 
                 if (!response.ok) {
                     throw new Error('Erro ao carregar estatísticas gerais');
@@ -333,7 +333,7 @@
         // Função para carregar lista de usuários
         async function carregarListaUsuarios() {
             try {
-                const response = await fetchAuthenticated('http://localhost:3002/api/admin/usuarios');
+                const response = await fetchAuthenticated('/api/admin/usuarios');
                 
                 if (!response.ok) {
                     throw new Error('Erro ao carregar lista de usuários');
@@ -364,7 +364,7 @@
             }
             
             try {
-                const response = await fetchAuthenticated(`http://localhost:3002/api/stats/users/${userId}`);
+                const response = await fetchAuthenticated(`/api/stats/users/${userId}`);
                 
                 if (!response.ok) {
                     throw new Error('Erro ao carregar estatísticas do usuário');

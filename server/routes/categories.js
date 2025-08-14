@@ -24,6 +24,27 @@ function cleanExpiredCache() {
     }
 }
 
+// Função para invalidar cache relacionado a categorias
+function invalidateCategoryCache() {
+    console.log('🔄 Invalidando cache de categorias...');
+    const keysToDelete = [];
+    
+    for (const [key] of categoryCache.entries()) {
+        if (key.startsWith('disciplinas') || 
+            key.startsWith('assuntos') || 
+            key.startsWith('bancas') || 
+            key.startsWith('orgaos') || 
+            key === 'todas_categorias') {
+            keysToDelete.push(key);
+        }
+    }
+    
+    keysToDelete.forEach(key => {
+        categoryCache.delete(key);
+        console.log(`🗑️ Cache removido: ${key}`);
+    });
+}
+
 // Limpar cache expirado a cada 10 minutos
 setInterval(cleanExpiredCache, 10 * 60 * 1000);
 
@@ -216,10 +237,13 @@ router.get('/todas', async (req, res) => {
 });
 
 // Rota para limpar cache (útil para admin)
-router.post('/clear-cache', async (req, res) => {
+router.post('/clear-cache', (req, res) => {
     try {
-        categoryCache.clear();
-        res.json({ message: 'Cache limpo com sucesso' });
+        invalidateCategoryCache();
+        res.json({ 
+            message: 'Cache limpo com sucesso!',
+            timestamp: new Date().toISOString()
+        });
     } catch (error) {
         console.error('Erro ao limpar cache:', error);
         res.status(500).json({
@@ -229,4 +253,5 @@ router.post('/clear-cache', async (req, res) => {
     }
 });
 
-module.exports = router;
+// Exportar função de invalidação para uso em outras rotas
+module.exports = { router, invalidateCategoryCache };

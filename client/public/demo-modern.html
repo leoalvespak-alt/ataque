@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demonstração - Layout Moderno</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=Aptos:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: #1b1b1b;
+            --text-primary: #f2f2f2;
+            --text-secondary: #f2f2f2;
+            --highlight: #8b0000;
+            --card-background: #242424;
+            --border-color: #333333;
+            --success: #00c853;
+            --warning: #ffab00;
+            --error: #d50000;
+            --transition: all 0.3s ease-in-out;
+        }
+
+        body {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .demo-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 700;
+            font-size: 3rem;
+            margin-bottom: 16px;
+            background: linear-gradient(45deg, var(--text-primary), var(--highlight));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-subtitle {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+
+        .demo-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .demo-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+            border-color: var(--highlight);
+        }
+
+        .demo-card-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--highlight), #a00000);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 2rem;
+            color: var(--text-primary);
+        }
+
+        .demo-card-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .demo-card-description {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .demo-card-features {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .demo-card-features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .demo-card-features li i {
+            color: var(--success);
+            font-size: 0.8rem;
+        }
+
+        .demo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background-color: var(--highlight);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .demo-btn:hover {
+            background-color: #f2f2f2;
+            transform: translateY(-2px);
+        }
+
+        .demo-section {
+            margin-bottom: 60px;
+        }
+
+        .demo-section-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 2rem;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .demo-features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .demo-feature {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .demo-feature-icon {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(139, 0, 0, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 1.5rem;
+            color: var(--highlight);
+        }
+
+        .demo-feature-title {
+            font-family: 'Saira', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .demo-feature-text {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .demo-footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .demo-footer-text {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .demo-container {
+                padding: 20px;
+            }
+
+            .demo-title {
+                font-size: 2rem;
+            }
+
+            .demo-subtitle {
+                font-size: 1rem;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <h1 class="demo-title">Layout Moderno - Rota de Ataque</h1>
+            <p class="demo-subtitle">Interface moderna e responsiva para sua plataforma de questões</p>
+        </header>
+
+        <section class="demo-section">
+            <div class="demo-grid">
+                <a href="/" class="demo-card">
+                    <div class="demo-card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="demo-card-title">Dashboard Moderno</h3>
+                    <p class="demo-card-description">
+                        Dashboard completo com painel de notificações, XP, ranking e estatísticas detalhadas do usuário.
+                    </p>
+                    <ul class="demo-card-features">
+                        <li><i class="fas fa-check"></i> Painel de notificações estilo Rota de Ataque</li>
+                        <li><i class="fas fa-check"></i> Barra de progresso XP animada</li>
+                        <li><i class="fas fa-check"></i> Dashboard circular de acertos</li>
+                        <li><i class="fas fa-check"></i> Atividades recentes</li>
+                        <li><i class="fas fa-check"></i> Estatísticas detalhadas</li>
+                    </ul>
+                    <span class="demo-btn">
+                        Ver Dashboard
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a href="/questoes-modern" class="demo-card">
+                    <div class="demo-card-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3 class="demo-card-title">Página de Questões</h3>
+                    <p class="demo-card-description">
+                        Interface moderna para visualização e resolução de questões com filtros avançados.
+                    </p>
+                    <ul class="demo-card-features">
+                        <li><i class="fas fa-check"></i> Filtros por disciplina, banca e dificuldade</li>
+                        <li><i class="fas fa-check"></i> Cards de questões interativos</li>
+                        <li><i class="fas fa-check"></i> Sistema de marcação para revisão</li>
+                        <li><i class="fas fa-check"></i> Estatísticas por questão</li>
+                        <li><i class="fas fa-check"></i> Paginação responsiva</li>
+                    </ul>
+                    <span class="demo-btn">
+                        Ver Questões
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a href="/ranking-modern" class="demo-card">
+                    <div class="demo-card-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3 class="demo-card-title">Ranking Moderno</h3>
+                    <p class="demo-card-description">
+                        Página de ranking com posição do usuário, filtros e lista completa dos alunos.
+                    </p>
+                    <ul class="demo-card-features">
+                        <li><i class="fas fa-check"></i> Minha posição destacada</li>
+                        <li><i class="fas fa-check"></i> Filtros por período e status</li>
+                        <li><i class="fas fa-check"></i> Lista completa de alunos</li>
+                        <li><i class="fas fa-check"></i> Estatísticas do ranking</li>
+                        <li><i class="fas fa-check"></i> Paginação responsiva</li>
+                    </ul>
+                    <span class="demo-btn">
+                        Ver Ranking
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a href="/planos-modern" class="demo-card">
+                    <div class="demo-card-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3 class="demo-card-title">Planos Modernos</h3>
+                    <p class="demo-card-description">
+                        Página de planos com comparação de recursos e FAQ para assinantes.
+                    </p>
+                    <ul class="demo-card-features">
+                        <li><i class="fas fa-check"></i> Cards de planos interativos</li>
+                        <li><i class="fas fa-check"></i> Comparação de recursos</li>
+                        <li><i class="fas fa-check"></i> Seção de FAQ expansível</li>
+                        <li><i class="fas fa-check"></i> Modal de comparação</li>
+                        <li><i class="fas fa-check"></i> Design atrativo</li>
+                    </ul>
+                    <span class="demo-btn">
+                        Ver Planos
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a href="/perfil-modern" class="demo-card">
+                    <div class="demo-card-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3 class="demo-card-title">Perfil Moderno</h3>
+                    <p class="demo-card-description">
+                        Página de perfil com estatísticas detalhadas, configurações e atividades.
+                    </p>
+                    <ul class="demo-card-features">
+                        <li><i class="fas fa-check"></i> Avatar com iniciais</li>
+                        <li><i class="fas fa-check"></i> Estatísticas detalhadas</li>
+                        <li><i class="fas fa-check"></i> Configurações com toggles</li>
+                        <li><i class="fas fa-check"></i> Timeline de atividades</li>
+                        <li><i class="fas fa-check"></i> Modal de edição</li>
+                    </ul>
+                    <span class="demo-btn">
+                        Ver Perfil
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a href="/base-modern" class="demo-card">
+                    <div class="demo-card-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3 class="demo-card-title">Layout Base</h3>
+                    <p class="demo-card-description">
+                        Template base com sidebar colapsável, header fixo e estrutura responsiva completa.
+                    </p>
+                    <ul class="demo-card-features">
+                        <li><i class="fas fa-check"></i> Sidebar com hover expand</li>
+                        <li><i class="fas fa-check"></i> Menu responsivo para mobile</li>
+                        <li><i class="fas fa-check"></i> Sistema de cores consistente</li>
+                        <li><i class="fas fa-check"></i> Tipografia otimizada</li>
+                        <li><i class="fas fa-check"></i> Componentes reutilizáveis</li>
+                    </ul>
+                    <span class="demo-btn">
+                        Ver Layout Base
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                </a>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <h2 class="demo-section-title">Características do Layout</h2>
+            <div class="demo-features-grid">
+                <div class="demo-feature">
+                    <div class="demo-feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h4 class="demo-feature-title">Totalmente Responsivo</h4>
+                    <p class="demo-feature-text">Adaptado para desktop, tablet e mobile com breakpoints otimizados</p>
+                </div>
+
+                <div class="demo-feature">
+                    <div class="demo-feature-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h4 class="demo-feature-title">Design System</h4>
+                    <p class="demo-feature-text">Sistema de cores, tipografia e componentes padronizados</p>
+                </div>
+
+                <div class="demo-feature">
+                    <div class="demo-feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h4 class="demo-feature-title">Performance Otimizada</h4>
+                    <p class="demo-feature-text">CSS otimizado com variáveis CSS e transições suaves</p>
+                </div>
+
+                <div class="demo-feature">
+                    <div class="demo-feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h4 class="demo-feature-title">Código Limpo</h4>
+                    <p class="demo-feature-text">Estrutura modular e bem organizada para fácil manutenção</p>
+                </div>
+
+                <div class="demo-feature">
+                    <div class="demo-feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4 class="demo-feature-title">UX Moderna</h4>
+                    <p class="demo-feature-text">Interface intuitiva com feedback visual e animações</p>
+                </div>
+
+                <div class="demo-feature">
+                    <div class="demo-feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h4 class="demo-feature-title">Fácil Customização</h4>
+                    <p class="demo-feature-text">Variáveis CSS para personalização rápida de cores e estilos</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="demo-footer">
+            <p class="demo-footer-text">
+                Layout desenvolvido seguindo as especificações do Rota de Ataque Questões<br>
+                Cores, fontes e estrutura conforme solicitado
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add hover effects to demo cards
+        document.querySelectorAll('.demo-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

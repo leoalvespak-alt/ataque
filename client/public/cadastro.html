@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Rota de Ataque Questões</title>
+    <title>Cadastro - Rota de Ataque</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=Aptos:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         * {
             margin: 0;
@@ -11,358 +20,542 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --background: #1b1b1b;
+            --text-primary: #f2f2f2;
+            --text-secondary: #f2f2f2;
+            --highlight: #8b0000;
+            --card-background: #242424;
+            --border-color: #333333;
+            --success: #00c853;
+            --warning: #ffab00;
+            --error: #d50000;
+            --transition: all 0.3s ease-in-out;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1b1b1b;
-            color: #f2f2f2;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #2a2a2a 100%);
+            color: var(--text-primary);
             line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Header */
-        .header {
-            background-color: rgba(27, 27, 27, 0.95);
-            backdrop-filter: blur(10px);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            border-bottom: 2px solid #c1121f;
-            transition: all 0.3s ease;
-        }
-
-        .header-content {
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 1rem 0;
+            justify-content: center;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+
+        .register-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 32px;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #c1121f;
-            text-decoration: none;
+            font-family: 'Saira', sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+            color: var(--highlight);
+            margin-bottom: 8px;
         }
 
-        .nav {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav a {
-            color: #f2f2f2;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-            position: relative;
-        }
-
-        .nav a:hover {
-            color: #c1121f;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-top: 80px;
-            min-height: calc(100vh - 160px);
-            padding: 2rem 0;
-        }
-
-        /* Cadastro Form */
-        .cadastro-container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 2rem;
-            background-color: #2a2a2a;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .cadastro-container h2 {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #f2f2f2;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #f2f2f2;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #333;
-            border-radius: 8px;
-            background-color: #1b1b1b;
-            color: #f2f2f2;
+        .register-subtitle {
+            font-family: 'Aptos', 'Calibre', sans-serif;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #c1121f;
+            color: var(--text-secondary);
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            gap: 16px;
         }
 
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #c1121f;
-            color: #f2f2f2;
-            text-decoration: none;
-            border: none;
-            border-radius: 8px;
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-family: 'Saira', sans-serif;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
             width: 100%;
+            padding: 12px 16px;
+            background-color: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
         }
 
-        .btn:hover {
-            background-color: #a0101a;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(193, 18, 31, 0.3);
+        .form-input:focus {
+            outline: none;
+            border-color: var(--highlight);
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.2);
         }
 
-        .btn-secondary {
-            background-color: transparent;
-            border: 2px solid #c1121f;
-            color: #c1121f;
+        .form-input::placeholder {
+            color: var(--text-secondary);
         }
 
-        .btn-secondary:hover {
-            background-color: #c1121f;
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--highlight);
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.2);
+        }
+
+        .register-button {
+            width: 100%;
+            padding: 14px 24px;
+            background-color: var(--highlight);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 6px;
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 16px;
+        }
+
+        .register-button:hover {
+            background-color: #f2f2f2;
+            transform: translateY(-1px);
+        }
+
+        .register-button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 24px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        .divider span {
+            background-color: var(--card-background);
+            padding: 0 16px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .login-link a {
+            color: var(--highlight);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .login-link a:hover {
             color: #f2f2f2;
         }
 
         .message {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+            display: none;
         }
 
         .message.success {
-            background-color: #28a745;
-            color: white;
+            background-color: rgba(0, 200, 83, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
         }
 
         .message.error {
-            background-color: #dc3545;
-            color: white;
+            background-color: rgba(213, 0, 0, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
         }
 
-        .cadastro-links {
+        .loading {
+            display: none;
             text-align: center;
-            margin-top: 1.5rem;
+            margin-top: 16px;
         }
 
-        .cadastro-links a {
-            color: #c1121f;
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--highlight);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .terms-checkbox input[type="checkbox"] {
+            margin-top: 4px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--highlight);
+        }
+
+        .terms-checkbox label {
+            font-family: 'Aptos', 'Calibre', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .terms-checkbox a {
+            color: var(--highlight);
             text-decoration: none;
         }
 
-        .cadastro-links a:hover {
+        .terms-checkbox a:hover {
             text-decoration: underline;
         }
 
-        /* Footer */
-        .footer {
-            background-color: #0f0f0f;
-            padding: 2rem 0;
-            text-align: center;
-            border-top: 1px solid #333;
-        }
+        @media (max-width: 600px) {
+            .register-container {
+                padding: 16px;
+            }
+            
+            .register-card {
+                padding: 24px;
+            }
 
-        .terms {
-            background-color: #1b1b1b;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1.5rem;
-            border-left: 4px solid #007bff;
-        }
-
-        .terms h4 {
-            color: #007bff;
-            margin-bottom: 0.5rem;
-        }
-
-        .terms p {
-            color: #ccc;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-        }
-
-        .checkbox-group label {
-            margin-bottom: 0;
-            font-size: 0.9rem;
+            .form-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">Rota de Ataque Questões</div>
-                <nav class="nav">
-                    <a href="/">Início</a>
-                    <a href="/questoes">Questões</a>
-                    <a href="/ranking">Ranking</a>
-                    <a href="/planos">Planos</a>
-                    <a href="/login">Login</a>
-                </nav>
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <div class="logo">Rota de Ataque</div>
+                <p class="register-subtitle">Crie sua conta gratuita</p>
             </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container">
-            <div class="cadastro-container">
-                <h2>📝 Criar Conta</h2>
-                <div id="message"></div>
-                
-                <form id="cadastroForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="nome">Nome</label>
-                            <input type="text" id="nome" name="nome" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="sobrenome">Sobrenome</label>
-                            <input type="text" id="sobrenome" name="sobrenome" required>
-                        </div>
-                    </div>
-                    
+            <div id="message" class="message"></div>
+
+            <form id="registerForm">
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" name="email" required>
+                        <label for="firstName" class="form-label">Nome</label>
+                        <input type="text" id="firstName" name="firstName" class="form-input" placeholder="Seu nome" required>
                     </div>
-                    
                     <div class="form-group">
-                        <label for="senha">Senha</label>
-                        <input type="password" id="senha" name="senha" required minlength="6">
+                        <label for="lastName" class="form-label">Sobrenome</label>
+                        <input type="text" id="lastName" name="lastName" class="form-input" placeholder="Seu sobrenome" required>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="confirmar_senha">Confirmar Senha</label>
-                        <input type="password" id="confirmar_senha" name="confirmar_senha" required minlength="6">
-                    </div>
-                    
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="aceitar_termos" name="aceitar_termos" required>
-                        <label for="aceitar_termos">Li e aceito os <a href="#" style="color: #c1121f;">Termos de Uso</a> e <a href="#" style="color: #c1121f;">Política de Privacidade</a></label>
-                    </div>
-                    
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="receber_emails" name="receber_emails">
-                        <label for="receber_emails">Desejo receber e-mails com novidades e dicas de estudo</label>
-                    </div>
-                    
-                    <button type="submit" class="btn">Criar Conta</button>
-                </form>
-                
-                <div class="cadastro-links">
-                    <p>Já tem uma conta? <a href="/login">Faça login</a></p>
                 </div>
-                
-                <div class="terms">
-                    <h4>ℹ️ Informações Importantes</h4>
-                    <p>• Sua conta será criada no plano gratuito</p>
-                    <p>• Você poderá fazer upgrade para Premium a qualquer momento</p>
-                    <p>• Seus dados estão seguros e não serão compartilhados</p>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">E-mail</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="Seu e-mail" required>
                 </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password" class="form-label">Senha</label>
+                        <input type="password" id="password" name="password" class="form-input" placeholder="Sua senha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirmar Senha</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="Confirme sua senha" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone" class="form-label">Telefone</label>
+                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="(11) 99999-9999">
+                </div>
+
+                <div class="form-group">
+                    <label for="city" class="form-label">Cidade</label>
+                    <input type="text" id="city" name="city" class="form-input" placeholder="Sua cidade">
+                </div>
+
+                <div class="form-group">
+                    <label for="state" class="form-label">Estado</label>
+                    <select id="state" name="state" class="form-select">
+                        <option value="">Selecione um estado</option>
+                        <option value="AC">Acre</option>
+                        <option value="AL">Alagoas</option>
+                        <option value="AP">Amapá</option>
+                        <option value="AM">Amazonas</option>
+                        <option value="BA">Bahia</option>
+                        <option value="CE">Ceará</option>
+                        <option value="DF">Distrito Federal</option>
+                        <option value="ES">Espírito Santo</option>
+                        <option value="GO">Goiás</option>
+                        <option value="MA">Maranhão</option>
+                        <option value="MT">Mato Grosso</option>
+                        <option value="MS">Mato Grosso do Sul</option>
+                        <option value="MG">Minas Gerais</option>
+                        <option value="PA">Pará</option>
+                        <option value="PB">Paraíba</option>
+                        <option value="PR">Paraná</option>
+                        <option value="PE">Pernambuco</option>
+                        <option value="PI">Piauí</option>
+                        <option value="RJ">Rio de Janeiro</option>
+                        <option value="RN">Rio Grande do Norte</option>
+                        <option value="RS">Rio Grande do Sul</option>
+                        <option value="RO">Rondônia</option>
+                        <option value="RR">Roraima</option>
+                        <option value="SC">Santa Catarina</option>
+                        <option value="SP">São Paulo</option>
+                        <option value="SE">Sergipe</option>
+                        <option value="TO">Tocantins</option>
+                    </select>
+                </div>
+
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms">
+                        Concordo com os <a href="#" onclick="showTerms()">Termos de Uso</a> e 
+                        <a href="#" onclick="showPrivacy()">Política de Privacidade</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="register-button" id="registerButton">
+                    <span class="button-text">Criar Conta</span>
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Criando conta...</p>
+            </div>
+
+            <div class="divider">
+                <span>ou</span>
+            </div>
+
+            <div class="login-link">
+                <p>Já tem uma conta? <a href="/login">Faça login</a></p>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Rota de Ataque Questões. Todos os direitos reservados.</p>
-        </div>
-    </footer>
-
     <script>
-        // Simulação de cadastro
-        document.getElementById('cadastroForm').addEventListener('submit', function(e) {
+        const registerForm = document.getElementById('registerForm');
+        const registerButton = document.getElementById('registerButton');
+        const loading = document.getElementById('loading');
+        const message = document.getElementById('message');
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+        }
+
+        function hideMessage() {
+            message.style.display = 'none';
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                registerButton.disabled = true;
+                registerButton.querySelector('.button-text').textContent = '';
+                loading.style.display = 'block';
+            } else {
+                registerButton.disabled = false;
+                registerButton.querySelector('.button-text').textContent = 'Criar Conta';
+                loading.style.display = 'none';
+            }
+        }
+
+        function validatePassword(password) {
+            const minLength = 6;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+
+            if (password.length < minLength) {
+                return 'A senha deve ter pelo menos 6 caracteres';
+            }
+            if (!hasUpperCase || !hasLowerCase) {
+                return 'A senha deve conter letras maiúsculas e minúsculas';
+            }
+            if (!hasNumbers) {
+                return 'A senha deve conter pelo menos um número';
+            }
+            return null;
+        }
+
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        registerForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const nome = document.getElementById('nome').value;
-            const sobrenome = document.getElementById('sobrenome').value;
-            const email = document.getElementById('email').value;
-            const senha = document.getElementById('senha').value;
-            const confirmarSenha = document.getElementById('confirmar_senha').value;
-            const aceitarTermos = document.getElementById('aceitar_termos').checked;
-            const messageDiv = document.getElementById('message');
-            
+            const formData = new FormData(registerForm);
+            const data = Object.fromEntries(formData);
+
             // Validações
-            if (senha !== confirmarSenha) {
-                messageDiv.innerHTML = '<div class="message error">❌ As senhas não coincidem.</div>';
+            if (!data.firstName || !data.lastName || !data.email || !data.password || !data.confirmPassword) {
+                showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
                 return;
             }
-            
-            if (senha.length < 6) {
-                messageDiv.innerHTML = '<div class="message error">❌ A senha deve ter pelo menos 6 caracteres.</div>';
+
+            if (!validateEmail(data.email)) {
+                showMessage('Por favor, insira um e-mail válido.', 'error');
                 return;
             }
-            
-            if (!aceitarTermos) {
-                messageDiv.innerHTML = '<div class="message error">❌ Você deve aceitar os termos de uso.</div>';
+
+            const passwordError = validatePassword(data.password);
+            if (passwordError) {
+                showMessage(passwordError, 'error');
                 return;
             }
-            
-            // Simular cadastro bem-sucedido
-            messageDiv.innerHTML = '<div class="message success">✅ Conta criada com sucesso! Redirecionando para login...</div>';
-            
-            // Simular redirecionamento
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 2000);
+
+            if (data.password !== data.confirmPassword) {
+                showMessage('As senhas não coincidem.', 'error');
+                return;
+            }
+
+            if (!data.terms) {
+                showMessage('Você deve aceitar os termos de uso.', 'error');
+                return;
+            }
+
+            setLoading(true);
+            hideMessage();
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nome: `${data.firstName} ${data.lastName}`,
+                        email: data.email,
+                        senha: data.password,
+                        telefone: data.phone || null,
+                        cidade: data.city || null,
+                        estado: data.state || null
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Conta criada com sucesso! Redirecionando para login...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    showMessage(result.message || 'Erro ao criar conta. Tente novamente.', 'error');
+                }
+            } catch (error) {
+                console.error('Erro no cadastro:', error);
+                showMessage('Erro de conexão. Tente novamente.', 'error');
+            } finally {
+                setLoading(false);
+            }
         });
-        
-        // Validação de senha em tempo real
-        document.getElementById('confirmar_senha').addEventListener('input', function() {
-            const senha = document.getElementById('senha').value;
-            const confirmarSenha = this.value;
-            
-            if (confirmarSenha && senha !== confirmarSenha) {
-                this.style.borderColor = '#dc3545';
-            } else {
-                this.style.borderColor = '#333';
+
+        function showTerms() {
+            alert('Termos de Uso:\n\n1. Você concorda em usar a plataforma de forma responsável\n2. Não compartilhar suas credenciais\n3. Respeitar os direitos autorais\n4. A plataforma pode modificar os termos a qualquer momento');
+        }
+
+        function showPrivacy() {
+            alert('Política de Privacidade:\n\n1. Seus dados são coletados apenas para uso da plataforma\n2. Não compartilhamos seus dados com terceiros\n3. Você pode solicitar a exclusão de seus dados\n4. Usamos cookies para melhorar sua experiência');
+        }
+
+        // Verificar se já está logado
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Verificar se o token ainda é válido
+                fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const user = JSON.parse(localStorage.getItem('user'));
+                        if (user.role === 'admin') {
+                            window.location.href = '/admin';
+                        } else {
+                            window.location.href = '/';
+                        }
+                    }
+                })
+                .catch(() => {
+                    // Token inválido, limpar localStorage
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                });
             }
         });
     </script>

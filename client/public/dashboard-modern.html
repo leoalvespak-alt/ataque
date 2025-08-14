@@ -1,0 +1,309 @@
+{% extends "base-modern.html" %}
+
+{% block title %}Dashboard - Rota de Ataque Questões{% endblock %}
+
+{% block header_title %}Meu Dashboard{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex align-center gap-2">
+    <div class="d-flex align-center gap-1">
+        <i class="fas fa-star" style="color: var(--warning);"></i>
+        <span id="userXP">1,250 XP</span>
+    </div>
+    <div class="d-flex align-center gap-1">
+        <i class="fas fa-trophy" style="color: var(--warning);"></i>
+        <span id="userRank">#12</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Painel de Notificações/Avisos -->
+<div class="card mb-3">
+    <h2 class="card-title">Notificações e Avisos</h2>
+    <div class="grid grid-2">
+        <div class="notification-card" style="border-left-color: var(--highlight);">
+            <div class="notification-category">Motivacional</div>
+            <div class="notification-title">Mantenha o Foco!</div>
+            <div class="notification-text">Você está no caminho certo. Continue praticando e os resultados virão!</div>
+        </div>
+        
+        <div class="notification-card" style="border-left-color: var(--success);">
+            <div class="notification-category">BIZU</div>
+            <div class="notification-title">Dica de Estudo</div>
+            <div class="notification-text">Resolva pelo menos 10 questões por dia para manter o ritmo de aprendizado.</div>
+        </div>
+        
+        <div class="notification-card" style="border-left-color: var(--warning);">
+            <div class="notification-category">Lembrete</div>
+            <div class="notification-title">Revisão Pendente</div>
+            <div class="notification-text">Você tem 5 questões marcadas para revisão. Não esqueça de revisá-las!</div>
+        </div>
+        
+        <div class="notification-card" style="border-left-color: var(--error);">
+            <div class="notification-category">Urgente</div>
+            <div class="notification-title">Simulado Disponível</div>
+            <div class="notification-text">Novo simulado de Direito Constitucional disponível. Teste seus conhecimentos!</div>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas do Usuário -->
+<div class="grid grid-3 mb-3">
+    <!-- XP Progress -->
+    <div class="card">
+        <h3 class="card-title">Seu Progresso</h3>
+        <div class="card-subtitle" id="xpDisplay">1,250 XP</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="xpProgressBar" style="width: 65%;"></div>
+        </div>
+        <div class="progress-text">65% do nível atual</div>
+        <div class="mt-2">
+            <small class="card-text">Próximo nível: 2,000 XP</small>
+        </div>
+    </div>
+
+    <!-- Ranking Position -->
+    <div class="card">
+        <h3 class="card-title">Sua Posição</h3>
+        <div class="card-subtitle" id="rankingDisplay">#12</div>
+        <div class="card-text">No ranking geral</div>
+        <div class="mt-2">
+            <div class="d-flex align-center gap-1 mb-1">
+                <i class="fas fa-arrow-up" style="color: var(--success);"></i>
+                <span class="card-text">Subiu 3 posições esta semana</span>
+            </div>
+            <div class="d-flex align-center gap-1">
+                <i class="fas fa-users"></i>
+                <span class="card-text">Entre 1,247 alunos</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accuracy Dashboard -->
+    <div class="card">
+        <h3 class="card-title">Taxa de Acertos</h3>
+        <div class="circular-progress">
+            <svg>
+                <circle class="bg" cx="60" cy="60" r="52"></circle>
+                <circle class="progress" cx="60" cy="60" r="52" 
+                        stroke-dasharray="326.73" 
+                        stroke-dashoffset="98.02"></circle>
+            </svg>
+            <div class="percentage">70%</div>
+        </div>
+        <div class="text-center mt-2">
+            <div class="card-text">70% de acertos</div>
+            <small class="card-text">Últimas 50 questões</small>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas Detalhadas -->
+<div class="grid grid-2 mb-3">
+    <!-- Questões Resolvidas -->
+    <div class="card">
+        <h3 class="card-title">Questões Resolvidas</h3>
+        <div class="d-flex justify-between align-center mb-2">
+            <div class="card-subtitle">1,247</div>
+            <div class="d-flex gap-1">
+                <span class="card-text">Hoje: 15</span>
+                <span class="card-text">Esta semana: 89</span>
+            </div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 78%;"></div>
+        </div>
+        <div class="progress-text">78% da meta semanal</div>
+    </div>
+
+    <!-- Disciplinas -->
+    <div class="card">
+        <h3 class="card-title">Melhor Disciplina</h3>
+        <div class="d-flex align-center gap-2 mb-2">
+            <div class="card-subtitle">Direito Constitucional</div>
+            <div class="d-flex align-center gap-1">
+                <i class="fas fa-star" style="color: var(--warning);"></i>
+                <span>85%</span>
+            </div>
+        </div>
+        <div class="card-text">Você tem excelente desempenho nesta disciplina!</div>
+        <div class="mt-2">
+            <small class="card-text">Questões resolvidas: 234</small>
+        </div>
+    </div>
+</div>
+
+<!-- Atividades Recentes -->
+<div class="card">
+    <h3 class="card-title">Atividades Recentes</h3>
+    <div class="activity-list">
+        <div class="activity-item d-flex align-center gap-2 mb-2">
+            <div class="activity-icon">
+                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">Questão de Direito Administrativo</div>
+                <div class="activity-text">Resposta correta - +10 XP</div>
+            </div>
+            <div class="activity-time">2 min atrás</div>
+        </div>
+        
+        <div class="activity-item d-flex align-center gap-2 mb-2">
+            <div class="activity-icon">
+                <i class="fas fa-times-circle" style="color: var(--error);"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">Questão de Direito Penal</div>
+                <div class="activity-text">Resposta incorreta - +2 XP</div>
+            </div>
+            <div class="activity-time">5 min atrás</div>
+        </div>
+        
+        <div class="activity-item d-flex align-center gap-2 mb-2">
+            <div class="activity-icon">
+                <i class="fas fa-trophy" style="color: var(--warning);"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">Conquista Desbloqueada</div>
+                <div class="activity-text">"Estudioso" - 100 questões resolvidas</div>
+            </div>
+            <div class="activity-time">1 hora atrás</div>
+        </div>
+        
+        <div class="activity-item d-flex align-center gap-2 mb-2">
+            <div class="activity-icon">
+                <i class="fas fa-star" style="color: var(--warning);"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">Nível Atingido</div>
+                <div class="activity-text">Subiu para o nível 8 - +50 XP</div>
+            </div>
+            <div class="activity-time">2 horas atrás</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Activity List Styles */
+    .activity-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .activity-item {
+        padding: 12px;
+        border-radius: var(--card-border-radius);
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+
+    .activity-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: var(--highlight);
+    }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-family: 'Saira', sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
+
+    .activity-text {
+        font-family: 'Aptos', 'Calibre', sans-serif;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .activity-time {
+        font-family: 'Aptos', 'Calibre', sans-serif;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+    }
+
+    /* Custom scrollbar for activity list */
+    .activity-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .activity-list::-webkit-scrollbar-track {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+
+    .activity-list::-webkit-scrollbar-thumb {
+        background: var(--highlight);
+        border-radius: 3px;
+    }
+
+    .activity-list::-webkit-scrollbar-thumb:hover {
+        background: #a00000;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Animate circular progress on load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate XP progress bar
+        const xpBar = document.getElementById('xpProgressBar');
+        xpBar.style.width = '0%';
+        setTimeout(() => {
+            xpBar.style.width = '65%';
+        }, 500);
+
+        // Animate circular progress
+        const progressCircle = document.querySelector('.circular-progress .progress');
+        const circumference = 2 * Math.PI * 52; // r=52
+        const percentage = 70;
+        const offset = circumference - (percentage / 100) * circumference;
+        
+        progressCircle.style.strokeDasharray = circumference;
+        progressCircle.style.strokeDashoffset = circumference;
+        
+        setTimeout(() => {
+            progressCircle.style.strokeDashoffset = offset;
+        }, 800);
+
+        // Simulate real-time updates
+        setInterval(() => {
+            // Update XP (simulate small increments)
+            const currentXP = parseInt(document.getElementById('userXP').textContent);
+            const newXP = currentXP + Math.floor(Math.random() * 5);
+            document.getElementById('userXP').textContent = newXP + ' XP';
+            document.getElementById('xpDisplay').textContent = newXP + ' XP';
+        }, 30000); // Update every 30 seconds
+    });
+
+    // Add hover effects to notification cards
+    document.querySelectorAll('.notification-card').forEach(card => {
+        card.addEventListener('click', function() {
+            // Add click effect
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-2px)';
+            }, 150);
+        });
+    });
+</script>
+{% endblock %}
