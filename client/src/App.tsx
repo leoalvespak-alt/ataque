@@ -1,10 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 import { CategoriesProvider } from './contexts/CategoriesContext';
 import { LogoProvider } from './contexts/LogoContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { supabase } from './lib/supabase';
 import './styles/App.css';
 
 // Componentes de páginas
@@ -269,17 +268,13 @@ const AppContent = () => {
 // Componente principal com providers
 const App: React.FC = () => {
   return (
-    <Router>
-      <AuthProvider>
-        <ThemeProvider>
-          <LogoProvider>
-            <CategoriesProvider>
-              <AppContent />
-            </CategoriesProvider>
-          </LogoProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </Router>
+    <ThemeProvider>
+      <LogoProvider>
+        <CategoriesProvider>
+          <AppContent />
+        </CategoriesProvider>
+      </LogoProvider>
+    </ThemeProvider>
   );
 };
 

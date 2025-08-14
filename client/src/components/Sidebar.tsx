@@ -58,7 +58,7 @@ const Sidebar: React.FC = () => {
       onMouseLeave={() => setIsExpanded(false)}
     >
       {/* Logo - Header fixo */}
-      <div className="flex items-center justify-center h-16 border-b border-[#333333] flex-shrink-0">
+      <div className="flex items-center justify-center h-16 border-b border-[#333333] flex-shrink-0 bg-[#1b1b1b]">
         <Link to="/dashboard" className="flex items-center">
           <Logo 
             height={32} 
@@ -70,7 +70,7 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation Items - Área com scroll */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden bg-[#1b1b1b]">
         <div className="px-2 py-4">
           {/* Itens de navegação principais */}
           <div className="mb-4">
@@ -127,7 +127,7 @@ const Sidebar: React.FC = () => {
       </nav>
 
       {/* Logout Button - Footer fixo */}
-      <div className="border-t border-[#333333] p-2 flex-shrink-0">
+      <div className="border-t border-[#333333] p-2 flex-shrink-0 bg-[#1b1b1b]">
         <button
           onClick={handleLogout}
           className="flex items-center w-full px-3 py-3 rounded-lg text-[#f2f2f2] hover:bg-[#8b0000] hover:text-white transition-all duration-300"

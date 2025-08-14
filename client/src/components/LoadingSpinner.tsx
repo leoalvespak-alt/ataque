@@ -2,7 +2,7 @@ import React from 'react';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
-  color?: 'white' | 'blue' | 'gray';
+  color?: 'white' | 'red' | 'gray';
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
@@ -17,7 +17,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   const colorClasses = {
     white: 'text-white',
-    blue: 'text-blue-600',
+    red: 'text-[#8b0000]',
     gray: 'text-gray-600'
   };
 

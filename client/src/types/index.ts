@@ -1,14 +1,17 @@
 // Tipos de usuário
 export interface User {
-  id: number;
+  id: string;
   nome: string;
   email: string;
-  status: 'gratuito' | 'premium';
+  status: 'gratuito' | 'premium' | 'ativo';
   tipo_usuario: 'aluno' | 'gestor';
   xp: number;
   questoes_respondidas: number;
-  ultimo_login?: string;
+  ultimo_login?: string | null;
+  profile_picture_url?: string | null;
+  ativo: boolean;
   created_at?: string;
+  updated_at?: string;
   assinatura?: Assinatura;
 }
 

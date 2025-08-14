@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (data: LoginData) => Promise<boolean>;
+  login: (user: any) => Promise<void>;
   cadastro: (data: CadastroData) => Promise<boolean>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
@@ -104,57 +104,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [initialized]);
 
-    const login = async (data: LoginData): Promise<boolean> => {
+  const login = async (user: any): Promise<void> => {
     try {
-      console.log('Iniciando login com:', data.email);
-      setLoading(true);
+      setToken(user.access_token);
       
-      // Fazer login com Supabase
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.senha
-      });
+      // Criar usuário básico
+      const basicUser = {
+        id: user.id,
+        nome: user.user_metadata?.nome || 'Usuário',
+        email: user.email || '',
+        tipo_usuario: user.user_metadata?.tipo_usuario || 'aluno',
+        status: 'ativo',
+        xp: 0,
+        questoes_respondidas: 0,
+        ultimo_login: null,
+        profile_picture_url: null,
+        ativo: true,
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      };
       
-      console.log('Resposta do Supabase Auth:', { authData, error });
-      
-      if (error) {
-        console.error('Erro no Supabase Auth:', error);
-        throw error;
-      }
-      
-              if (authData.session) {
-          console.log('Sessão criada, criando usuário básico...');
-          setToken(authData.session.access_token);
-          
-          // TEMPORÁRIO: Criar usuário básico sem buscar da tabela
-          const basicUser = {
-            id: authData.user.id,
-            nome: authData.user.user_metadata?.nome || 'Usuário',
-            email: authData.user.email || '',
-            tipo_usuario: authData.user.user_metadata?.tipo_usuario || 'aluno',
-            status: 'ativo',
-            xp: 0,
-            questoes_respondidas: 0,
-            ultimo_login: null,
-            profile_picture_url: null,
-            ativo: true,
-            created_at: authData.user.created_at,
-            updated_at: authData.user.updated_at
-          };
-          
-          setUser(basicUser);
-          console.log('Login realizado com sucesso!');
-          return true;
-        } else {
-        console.log('Nenhuma sessão criada');
-        return false;
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || 'Erro ao fazer login';
-      console.error('Erro no login:', errorMessage);
-      return false;
-    } finally {
-      setLoading(false);
+      setUser(basicUser);
+      console.log('Login realizado com sucesso!');
+    } catch (error) {
+      console.error('Erro no login:', error);
+      throw error;
     }
   };
 

@@ -22,7 +22,40 @@ export default {
           800: '#1e40af',
           900: '#1e3a8a',
         },
+        // Cores do tema escuro
+        dark: {
+          50: '#f8f9fa',
+          100: '#e9ecef',
+          200: '#dee2e6',
+          300: '#ced4da',
+          400: '#adb5bd',
+          500: '#6c757d',
+          600: '#495057',
+          700: '#343a40',
+          800: '#212529',
+          900: '#1b1b1b',
+        },
+        // Cores vermelhas para o tema
+        red: {
+          500: '#8b0000',
+          600: '#a00000',
+          700: '#b00000',
+        }
       },
+      backgroundColor: {
+        'dark-primary': '#1b1b1b',
+        'dark-secondary': '#2a2a2a',
+        'dark-tertiary': '#333333',
+      },
+      textColor: {
+        'dark-primary': '#f2f2f2',
+        'dark-secondary': '#cccccc',
+        'dark-tertiary': '#888888',
+      },
+      borderColor: {
+        'dark-primary': '#333333',
+        'dark-secondary': '#8b0000',
+      }
     },
   },
   plugins: [],
