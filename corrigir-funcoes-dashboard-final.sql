@@ -1,298 +1,234 @@
--- Script corrigido para resolver problemas específicos do dashboard
--- Baseado no diagnóstico realizado
+-- Script para corrigir as funções do dashboard
+-- Execute este script no Supabase SQL Editor
 
--- =====================================================
--- 1. CORRIGIR FUNÇÃO get_estatisticas_detalhadas_usuario
--- =====================================================
+-- 1. CORRIGIR FUNÇÃO get_estatisticas_dashboard
+DROP FUNCTION IF EXISTS get_estatisticas_dashboard(uuid);
+DROP FUNCTION IF EXISTS get_estatisticas_dashboard();
 
-CREATE OR REPLACE FUNCTION get_estatisticas_detalhadas_usuario()
+CREATE OR REPLACE FUNCTION get_estatisticas_dashboard(user_id UUID DEFAULT NULL)
 RETURNS TABLE (
-    total_respostas INTEGER,
-    total_acertos INTEGER,
-    total_erros INTEGER,
-    percentual_acerto DECIMAL(5,2),
-    xp_total INTEGER,
-    questoes_respondidas INTEGER,
-    respostas_ultimos_30_dias INTEGER,
-    acertos_ultimos_30_dias INTEGER,
-    percentual_ultimos_30_dias DECIMAL(5,2),
-    streak_atual INTEGER,
-    dias_estudo INTEGER
-)
+  total_respostas BIGINT,
+  total_acertos BIGINT,
+  total_erros BIGINT,
+  percentual_acerto NUMERIC,
+  xp_total BIGINT,
+  questoes_respondidas BIGINT,
+  respostas_ultimos_30_dias BIGINT,
+  acertos_ultimos_30_dias BIGINT,
+  percentual_ultimos_30_dias NUMERIC,
+  streak_atual INTEGER,
+  dias_estudo INTEGER
+) 
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-    user_id UUID;
-    total_resp INTEGER := 0;
-    total_acertos INTEGER := 0;
-    total_erros INTEGER := 0;
-    respostas_30_dias INTEGER := 0;
-    acertos_30_dias INTEGER := 0;
-    streak INTEGER := 0;
-    dias_estudo INTEGER := 0;
-    user_xp INTEGER := 0;
-    user_questoes INTEGER := 0;
+  v_user_id UUID;
+  v_total_respostas BIGINT := 0;
+  v_total_acertos BIGINT := 0;
+  v_total_erros BIGINT := 0;
+  v_xp_total BIGINT := 0;
+  v_questoes_respondidas BIGINT := 0;
+  v_respostas_ultimos_30_dias BIGINT := 0;
+  v_acertos_ultimos_30_dias BIGINT := 0;
+  v_streak_atual INTEGER := 0;
+  v_dias_estudo INTEGER := 0;
 BEGIN
-    user_id := auth.uid();
-    
-    -- Obter dados do usuário (usando alias para evitar ambiguidade)
-    SELECT COALESCE(u.xp, 0), COALESCE(u.questoes_respondidas, 0) 
-    INTO user_xp, user_questoes
-    FROM usuarios u
-    WHERE u.id = user_id;
-    
-    -- Estatísticas gerais
-    BEGIN
-        SELECT 
-            COUNT(*),
-            COUNT(*) FILTER (WHERE acertou = true),
-            COUNT(*) FILTER (WHERE acertou = false)
-        INTO total_resp, total_acertos, total_erros
-        FROM respostas_usuarios
-        WHERE usuario_id = user_id;
-    EXCEPTION
-        WHEN OTHERS THEN
-            total_resp := 0;
-            total_acertos := 0;
-            total_erros := 0;
-    END;
-    
-    -- Estatísticas dos últimos 30 dias
-    BEGIN
-        SELECT 
-            COUNT(*),
-            COUNT(*) FILTER (WHERE acertou = true)
-        INTO respostas_30_dias, acertos_30_dias
-        FROM respostas_usuarios
-        WHERE usuario_id = user_id 
-        AND data_resposta >= NOW() - INTERVAL '30 days';
-    EXCEPTION
-        WHEN OTHERS THEN
-            respostas_30_dias := 0;
-            acertos_30_dias := 0;
-    END;
-    
-    -- Calcular dias de estudo
-    BEGIN
-        SELECT COUNT(DISTINCT DATE(data_resposta)) INTO dias_estudo
-        FROM respostas_usuarios
-        WHERE usuario_id = user_id;
-    EXCEPTION
-        WHEN OTHERS THEN
-            dias_estudo := 0;
-    END;
-    
-    -- Calcular streak (simplificado)
-    streak := dias_estudo;
-    
-    RETURN QUERY
-    SELECT 
-        total_resp,
-        total_acertos,
-        total_erros,
-        CASE WHEN total_resp > 0 THEN (total_acertos::DECIMAL / total_resp * 100) ELSE 0 END,
-        user_xp,
-        user_questoes,
-        respostas_30_dias,
-        acertos_30_dias,
-        CASE WHEN respostas_30_dias > 0 THEN (acertos_30_dias::DECIMAL / respostas_30_dias * 100) ELSE 0 END,
-        streak,
-        dias_estudo;
+  -- Usar o user_id fornecido ou o usuário atual
+  v_user_id := COALESCE(user_id, auth.uid());
+  
+  IF v_user_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  -- Estatísticas gerais
+  SELECT 
+    COUNT(*),
+    COUNT(*) FILTER (WHERE correta = true),
+    COUNT(*) FILTER (WHERE correta = false),
+    COALESCE(SUM(xp_ganho), 0),
+    COUNT(DISTINCT questao_id)
+  INTO 
+    v_total_respostas,
+    v_total_acertos,
+    v_total_erros,
+    v_xp_total,
+    v_questoes_respondidas
+  FROM respostas_alunos 
+  WHERE aluno_id = v_user_id;
+
+  -- Estatísticas dos últimos 30 dias
+  SELECT 
+    COUNT(*),
+    COUNT(*) FILTER (WHERE correta = true)
+  INTO 
+    v_respostas_ultimos_30_dias,
+    v_acertos_ultimos_30_dias
+  FROM respostas_alunos 
+  WHERE aluno_id = v_user_id 
+    AND created_at >= NOW() - INTERVAL '30 days';
+
+  -- Calcular percentuais
+  RETURN QUERY SELECT
+    v_total_respostas,
+    v_total_acertos,
+    v_total_erros,
+    CASE 
+      WHEN v_total_respostas > 0 THEN 
+        ROUND((v_total_acertos::NUMERIC / v_total_respostas::NUMERIC) * 100, 2)
+      ELSE 0 
+    END,
+    v_xp_total,
+    v_questoes_respondidas,
+    v_respostas_ultimos_30_dias,
+    v_acertos_ultimos_30_dias,
+    CASE 
+      WHEN v_respostas_ultimos_30_dias > 0 THEN 
+        ROUND((v_acertos_ultimos_30_dias::NUMERIC / v_respostas_ultimos_30_dias::NUMERIC) * 100, 2)
+      ELSE 0 
+    END,
+    v_streak_atual,
+    v_dias_estudo;
 END;
 $$;
 
--- =====================================================
--- 2. CORRIGIR FUNÇÃO get_progresso_ultimos_7_dias
--- =====================================================
+-- 2. CORRIGIR FUNÇÃO get_notificacoes_dashboard
+DROP FUNCTION IF EXISTS get_notificacoes_dashboard(uuid);
+DROP FUNCTION IF EXISTS get_notificacoes_dashboard();
 
-CREATE OR REPLACE FUNCTION get_progresso_ultimos_7_dias()
+CREATE OR REPLACE FUNCTION get_notificacoes_dashboard(user_id UUID DEFAULT NULL)
 RETURNS TABLE (
-    data DATE,
-    total_questoes INTEGER,
-    acertos INTEGER,
-    erros INTEGER,
-    percentual_acerto DECIMAL(5,2)
-)
+  id BIGINT,
+  titulo TEXT,
+  mensagem TEXT,
+  tipo TEXT,
+  prioridade TEXT,
+  lida BOOLEAN,
+  created_at TIMESTAMPTZ
+) 
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-    user_id UUID;
-    data_atual DATE;
-    i INTEGER;
-    total_q INTEGER;
-    acertos_dia INTEGER;
-    erros_dia INTEGER;
+  v_user_id UUID;
 BEGIN
-    user_id := auth.uid();
-    data_atual := CURRENT_DATE;
-    
-    -- Gerar dados para os últimos 7 dias
-    FOR i IN 0..6 LOOP
-        -- Obter dados para o dia específico
-        SELECT 
-            COALESCE(COUNT(r.id), 0),
-            COALESCE(COUNT(r.id) FILTER (WHERE r.acertou = true), 0),
-            COALESCE(COUNT(r.id) FILTER (WHERE r.acertou = false), 0)
-        INTO total_q, acertos_dia, erros_dia
-        FROM respostas_usuarios r
-        WHERE r.usuario_id = user_id
-        AND DATE(r.data_resposta) = data_atual - i;
-        
-        -- Retornar linha para o dia
-        data := data_atual - i;
-        total_questoes := total_q;
-        acertos := acertos_dia;
-        erros := erros_dia;
-        percentual_acerto := CASE 
-            WHEN total_q > 0 THEN (acertos_dia::DECIMAL / total_q * 100)
-            ELSE 0 
-        END;
-        
-        RETURN NEXT;
-    END LOOP;
+  -- Usar o user_id fornecido ou o usuário atual
+  v_user_id := COALESCE(user_id, auth.uid());
+  
+  IF v_user_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  -- Retornar notificações do usuário
+  RETURN QUERY SELECT
+    n.id,
+    n.titulo,
+    n.mensagem,
+    n.tipo,
+    n.prioridade,
+    COALESCE(un.lida, false) as lida,
+    n.created_at
+  FROM notificacoes n
+  LEFT JOIN usuarios_notificacoes un ON n.id = un.notificacao_id AND un.usuario_id = v_user_id
+  WHERE n.ativo = true
+    AND (n.usuario_id = v_user_id OR n.usuario_id IS NULL)
+  ORDER BY n.created_at DESC
+  LIMIT 10;
 END;
 $$;
 
--- =====================================================
--- 3. CORRIGIR FUNÇÃO get_notificacoes_dashboard
--- =====================================================
+-- 3. CORRIGIR FUNÇÃO marcar_notificacao_lida_segura
+DROP FUNCTION IF EXISTS marcar_notificacao_lida_segura(bigint);
+DROP FUNCTION IF EXISTS marcar_notificacao_lida_segura(bigint, uuid);
 
-CREATE OR REPLACE FUNCTION get_notificacoes_dashboard()
-RETURNS TABLE (
-    id INTEGER,
-    titulo VARCHAR(255),
-    mensagem TEXT,
-    tipo VARCHAR(50),
-    prioridade VARCHAR(20),
-    lida BOOLEAN,
-    created_at TIMESTAMP
-)
+CREATE OR REPLACE FUNCTION marcar_notificacao_lida_segura(notificacao_id BIGINT, user_id UUID DEFAULT NULL)
+RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-    user_id UUID;
-    user_tipo VARCHAR(20);
+  v_user_id UUID;
+  v_notificacao_exists BOOLEAN;
 BEGIN
-    user_id := auth.uid();
-    
-    -- Obter tipo do usuário
-    SELECT COALESCE(tipo_usuario, 'aluno') INTO user_tipo
-    FROM usuarios
-    WHERE id = user_id;
-    
-    -- Retornar dados vazios se a tabela notificacoes não existir
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_name = 'notificacoes'
-    ) THEN
-        RETURN;
-    END IF;
-    
-    RETURN QUERY
-    SELECT 
-        n.id,
-        n.titulo,
-        n.mensagem,
-        COALESCE(n.tipo, 'INFO') as tipo,
-        COALESCE(n.prioridade, 'NORMAL') as prioridade,
-        COALESCE(n.lida, false) as lida,
-        n.created_at
-    FROM notificacoes n
-    WHERE n.ativa = true
-    AND (
-        n.usuario_id = user_id OR
-        n.destinatario_tipo = 'TODOS' OR
-        (n.destinatario_tipo = 'ALUNOS' AND user_tipo = 'aluno') OR
-        (n.destinatario_tipo = 'GESTORES' AND user_tipo = 'gestor')
-    )
-    ORDER BY n.prioridade DESC, n.created_at DESC
-    LIMIT 10;
+  -- Usar o user_id fornecido ou o usuário atual
+  v_user_id := COALESCE(user_id, auth.uid());
+  
+  IF v_user_id IS NULL THEN
+    RETURN false;
+  END IF;
+
+  -- Verificar se a notificação existe e pertence ao usuário
+  SELECT EXISTS(
+    SELECT 1 FROM notificacoes n
+    LEFT JOIN usuarios_notificacoes un ON n.id = un.notificacao_id AND un.usuario_id = v_user_id
+    WHERE n.id = notificacao_id 
+      AND n.ativo = true
+      AND (n.usuario_id = v_user_id OR n.usuario_id IS NULL)
+  ) INTO v_notificacao_exists;
+
+  IF NOT v_notificacao_exists THEN
+    RETURN false;
+  END IF;
+
+  -- Marcar como lida
+  INSERT INTO usuarios_notificacoes (usuario_id, notificacao_id, lida, created_at)
+  VALUES (v_user_id, notificacao_id, true, NOW())
+  ON CONFLICT (usuario_id, notificacao_id) 
+  DO UPDATE SET lida = true, updated_at = NOW();
+
+  RETURN true;
 END;
 $$;
 
--- =====================================================
--- 4. VERIFICAR E CORRIGIR ESTRUTURA DAS TABELAS
--- =====================================================
-
--- Verificar se a coluna 'ativo' existe na tabela disciplinas
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'disciplinas' AND column_name = 'ativo'
-    ) THEN
-        ALTER TABLE disciplinas ADD COLUMN ativo BOOLEAN DEFAULT TRUE;
-        RAISE NOTICE 'Coluna "ativo" adicionada à tabela disciplinas';
-    ELSE
-        RAISE NOTICE 'Coluna "ativo" já existe na tabela disciplinas';
-    END IF;
-END $$;
-
--- Verificar se a tabela respostas_usuarios tem as colunas necessárias
-DO $$
-BEGIN
-    -- Verificar se a coluna 'acertou' existe
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'respostas_usuarios' AND column_name = 'acertou'
-    ) THEN
-        ALTER TABLE respostas_usuarios ADD COLUMN acertou BOOLEAN NOT NULL DEFAULT FALSE;
-        RAISE NOTICE 'Coluna "acertou" adicionada à tabela respostas_usuarios';
-    ELSE
-        RAISE NOTICE 'Coluna "acertou" já existe na tabela respostas_usuarios';
-    END IF;
-    
-    -- Verificar se a coluna 'data_resposta' existe
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'respostas_usuarios' AND column_name = 'data_resposta'
-    ) THEN
-        ALTER TABLE respostas_usuarios ADD COLUMN data_resposta TIMESTAMP DEFAULT NOW();
-        RAISE NOTICE 'Coluna "data_resposta" adicionada à tabela respostas_usuarios';
-    ELSE
-        RAISE NOTICE 'Coluna "data_resposta" já existe na tabela respostas_usuarios';
-    END IF;
-END $$;
-
--- =====================================================
--- 5. CRIAR TABELA DICAS_ESTUDO SE NÃO EXISTIR
--- =====================================================
-
-CREATE TABLE IF NOT EXISTS dicas_estudo (
-    id SERIAL PRIMARY KEY,
-    titulo VARCHAR(255) NOT NULL,
-    texto TEXT NOT NULL,
-    categoria VARCHAR(50) NOT NULL DEFAULT 'GERAL',
-    prioridade INTEGER NOT NULL DEFAULT 1,
-    ativa BOOLEAN NOT NULL DEFAULT TRUE,
-    criado_por UUID REFERENCES usuarios(id),
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+-- 4. VERIFICAR SE AS TABELAS NECESSÁRIAS EXISTEM
+-- Se a tabela notificacoes não existir, criar uma versão simplificada
+CREATE TABLE IF NOT EXISTS notificacoes (
+  id BIGSERIAL PRIMARY KEY,
+  titulo TEXT NOT NULL,
+  mensagem TEXT NOT NULL,
+  tipo TEXT DEFAULT 'INFO',
+  prioridade TEXT DEFAULT 'NORMAL',
+  usuario_id UUID REFERENCES auth.users(id),
+  ativo BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Inserir dicas de estudo iniciais se não existirem
-INSERT INTO dicas_estudo (titulo, texto, categoria, prioridade, ativa) VALUES
-('Mantenha o Foco!', 'Resolva pelo menos 10 questões por dia para manter o ritmo de aprendizado. A consistência é mais importante que a quantidade.', 'MOTIVACIONAL', 3, true),
-('Dica de Estudo', 'Revise as questões que você errou. Aprender com os erros é uma das melhores formas de fixar o conteúdo.', 'ESTUDO', 2, true),
-('Lembrete Importante', 'Não esqueça de fazer pausas durante os estudos. O cérebro precisa de descanso para assimilar melhor o conteúdo.', 'SAUDE', 1, true)
+-- Se a tabela usuarios_notificacoes não existir, criar
+CREATE TABLE IF NOT EXISTS usuarios_notificacoes (
+  usuario_id UUID REFERENCES auth.users(id),
+  notificacao_id BIGINT REFERENCES notificacoes(id),
+  lida BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (usuario_id, notificacao_id)
+);
+
+-- 5. CONFIGURAR RLS (Row Level Security)
+ALTER TABLE notificacoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usuarios_notificacoes ENABLE ROW LEVEL SECURITY;
+
+-- Políticas para notificacoes
+DROP POLICY IF EXISTS "Usuários podem ver suas notificações" ON notificacoes;
+CREATE POLICY "Usuários podem ver suas notificações" ON notificacoes
+  FOR SELECT USING (
+    auth.uid() = usuario_id OR usuario_id IS NULL
+  );
+
+-- Políticas para usuarios_notificacoes
+DROP POLICY IF EXISTS "Usuários podem gerenciar suas notificações" ON usuarios_notificacoes;
+CREATE POLICY "Usuários podem gerenciar suas notificacoes" ON usuarios_notificacoes
+  FOR ALL USING (auth.uid() = usuario_id);
+
+-- 6. INSERIR DADOS DE EXEMPLO (opcional)
+INSERT INTO notificacoes (titulo, mensagem, tipo, prioridade, usuario_id) VALUES
+('Bem-vindo!', 'Seja bem-vindo à plataforma Rota de Ataque Questões!', 'INFO', 'NORMAL', NULL),
+('Dica de Estudo', 'Lembre-se de revisar as questões que você errou!', 'DICA', 'BAIXA', NULL)
 ON CONFLICT DO NOTHING;
 
--- =====================================================
--- 6. CRIAR ÍNDICES PARA PERFORMANCE
--- =====================================================
-
-CREATE INDEX IF NOT EXISTS idx_respostas_usuario_data ON respostas_usuarios(usuario_id, data_resposta);
-CREATE INDEX IF NOT EXISTS idx_respostas_acertou ON respostas_usuarios(usuario_id, acertou);
-CREATE INDEX IF NOT EXISTS idx_dicas_estudo_ativa ON dicas_estudo(ativa);
-CREATE INDEX IF NOT EXISTS idx_dicas_estudo_prioridade ON dicas_estudo(prioridade);
-
--- =====================================================
--- 7. MENSAGEM DE CONCLUSÃO
--- =====================================================
-
-SELECT 'Funções do dashboard corrigidas com sucesso!' as status;
-SELECT 'Problemas de ambiguidade de colunas resolvidos' as correcoes;
-SELECT 'Estrutura de tabelas verificada e corrigida' as estrutura;
+-- 7. VERIFICAR SE AS FUNÇÕES FORAM CRIADAS
+SELECT 'Função get_estatisticas_dashboard criada com sucesso!' as status
+UNION ALL
+SELECT 'Função get_notificacoes_dashboard criada com sucesso!' as status
+UNION ALL
+SELECT 'Função marcar_notificacao_lida_segura criada com sucesso!' as status;

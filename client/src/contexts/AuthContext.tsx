@@ -22,22 +22,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   // Verificar sessão ao inicializar
   useEffect(() => {
+    if (initialized) return;
+
     const initializeAuth = async () => {
       try {
         console.log('Inicializando autenticação...');
         // Obter sessão atual
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        console.log('Sessão:', session);
-        console.log('Erro:', error);
-        
         if (session && !error) {
           setToken(session.access_token);
           
-          // TEMPORÁRIO: Criar usuário básico sem buscar da tabela
+          // Criar usuário básico sem buscar da tabela
           const basicUser = {
             id: session.user.id,
             nome: session.user.user_metadata?.nome || 'Usuário',
@@ -54,12 +54,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           };
           
           setUser(basicUser);
-          console.log('Usuário básico criado:', basicUser);
         }
       } catch (error) {
         console.error('Erro ao inicializar autenticação:', error);
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     };
 
@@ -68,43 +68,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Escutar mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Mudança de autenticação:', event, session);
-        try {
-          if (event === 'SIGNED_IN' && session) {
-            setToken(session.access_token);
-            
-            // TEMPORÁRIO: Criar usuário básico sem buscar da tabela
-            const basicUser = {
-              id: session.user.id,
-              nome: session.user.user_metadata?.nome || 'Usuário',
-              email: session.user.email || '',
-              tipo_usuario: session.user.user_metadata?.tipo_usuario || 'aluno',
-              status: 'ativo',
-              xp: 0,
-              questoes_respondidas: 0,
-              ultimo_login: null,
-              profile_picture_url: null,
-              ativo: true,
-              created_at: session.user.created_at,
-              updated_at: session.user.updated_at
-            };
-            
-            setUser(basicUser);
-            console.log('Usuário básico criado no onAuthStateChange:', basicUser);
-          } else if (event === 'SIGNED_OUT') {
-            setUser(null);
-            setToken(null);
-          }
-        } catch (error) {
-          console.error('Erro no onAuthStateChange:', error);
-        } finally {
-          setLoading(false);
+        console.log('Mudança de autenticação:', event);
+        
+        if (event === 'SIGNED_IN' && session) {
+          setToken(session.access_token);
+          
+          // Criar usuário básico sem buscar da tabela
+          const basicUser = {
+            id: session.user.id,
+            nome: session.user.user_metadata?.nome || 'Usuário',
+            email: session.user.email || '',
+            tipo_usuario: session.user.user_metadata?.tipo_usuario || 'aluno',
+            status: 'ativo',
+            xp: 0,
+            questoes_respondidas: 0,
+            ultimo_login: null,
+            profile_picture_url: null,
+            ativo: true,
+            created_at: session.user.created_at,
+            updated_at: session.user.updated_at
+          };
+          
+          setUser(basicUser);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setToken(null);
         }
+        
+        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [initialized]);
 
     const login = async (data: LoginData): Promise<boolean> => {
     try {

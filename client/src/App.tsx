@@ -36,7 +36,10 @@ import LoadingSpinner from './components/LoadingSpinner';
 import Layout from './components/Layout';
 
 // Componente de rota protegida
-const ProtectedRoute = ({ children, requireAdmin = false }) => {
+const ProtectedRoute = ({ children, requireAdmin = false }: { 
+  children: React.ReactNode; 
+  requireAdmin?: boolean;
+}) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -51,7 +54,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 // Componente principal da aplicação
@@ -67,179 +70,217 @@ const AppContent = () => {
   }
 
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Rotas públicas */}
-          <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
-          <Route path="/cadastro" element={user ? <Navigate to="/dashboard" replace /> : <Cadastro />} />
-          
-          {/* Rota raiz - redireciona baseado no status de autenticação */}
-          <Route path="/" element={
-            user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
-          } />
-          
-          {/* Rotas protegidas para usuários */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/questoes" element={
-            <ProtectedRoute>
-              <Layout>
-                <Questoes />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/estatisticas" element={
-            <ProtectedRoute>
-              <Layout>
-                <Estatisticas />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/ranking" element={
-            <ProtectedRoute>
-              <Layout>
-                <Ranking />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/planos" element={
-            <ProtectedRoute>
-              <Layout>
-                <Planos />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/perfil" element={
-            <ProtectedRoute>
-              <Layout>
-                <Perfil />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/meus-cadernos" element={
-            <ProtectedRoute>
-              <Layout>
-                <MeusCadernos />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          {/* Rotas protegidas para administradores */}
-          <Route path="/admin" element={
-            <ProtectedRoute requireAdmin={true}>
+    <div className="App">
+      <Routes>
+        {/* Rotas públicas */}
+        <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+        <Route path="/cadastro" element={user ? <Navigate to="/dashboard" replace /> : <Cadastro />} />
+        
+        {/* Rota raiz - redireciona baseado no status de autenticação */}
+        <Route path="/" element={
+          user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        } />
+        
+        {/* Rotas protegidas para usuários */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/questoes" element={
+          <ProtectedRoute>
+            <Layout>
+              <Questoes />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/estatisticas" element={
+          <ProtectedRoute>
+            <Layout>
+              <Estatisticas />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/ranking" element={
+          <ProtectedRoute>
+            <Layout>
+              <Ranking />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/planos" element={
+          <ProtectedRoute>
+            <Layout>
+              <Planos />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/perfil" element={
+          <ProtectedRoute>
+            <Layout>
+              <Perfil />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/meus-cadernos" element={
+          <ProtectedRoute>
+            <Layout>
+              <MeusCadernos />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/politicas-privacidade" element={
+          <ProtectedRoute>
+            <Layout>
+              <PoliticasPrivacidade />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/termos-uso" element={
+          <ProtectedRoute>
+            <Layout>
+              <TermosUso />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        {/* Rotas administrativas */}
+        <Route path="/admin" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <Admin />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/usuarios" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/usuarios" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminUsuarios />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/questoes" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/questoes" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminQuestoes />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/relatorios" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/relatorios" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminRelatorios />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/configuracoes" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/configuracoes" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminConfiguracoes />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/planos" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/planos" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminPlanos />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/categorias" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/categorias" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminCategorias />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/comentarios" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/comentarios" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminComentarios />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/scripts" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/scripts" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminScripts />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/notificacoes" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/notificacoes" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminNotificacoes />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/dicas-estudo" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/dicas-estudo" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminDicasEstudo />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/politicas-termos" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/politicas-termos" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminPoliticasTermos />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/design" element={
-            <ProtectedRoute requireAdmin={true}>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/design" element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
               <AdminDesign />
-            </ProtectedRoute>
-          } />
-          
-          {/* Rotas públicas para políticas e termos */}
-          <Route path="/politicas-privacidade" element={<PoliticasPrivacidade />} />
-          <Route path="/termos-uso" element={<TermosUso />} />
-          
-          {/* Rota para capturar rotas não encontradas */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </Router>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        {/* Rota 404 */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </div>
   );
 };
 
 // Componente principal com providers
-function App() {
+const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <CategoriesProvider>
+    <Router>
+      <AuthProvider>
+        <ThemeProvider>
           <LogoProvider>
-            <AppContent />
+            <CategoriesProvider>
+              <AppContent />
+            </CategoriesProvider>
           </LogoProvider>
-        </CategoriesProvider>
-      </ThemeProvider>
-    </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </Router>
   );
-}
+};
 
 export default App;
