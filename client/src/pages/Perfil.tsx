@@ -430,25 +430,25 @@ const Perfil: React.FC = () => {
                 <h2 className="text-xl font-semibold mb-6">Estatísticas</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-[#8b0000] mb-2">
+                    <div className="text-2xl font-bold text-[#f2f2f2] mb-2">
                       {userStats.total_questoes}
                     </div>
                     <div className="text-sm text-[#f2f2f2]/70">Questões Respondidas</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-[#8b0000] mb-2">
+                    <div className="text-2xl font-bold text-[#f2f2f2] mb-2">
                       {userStats.taxa_acerto}%
                     </div>
                     <div className="text-sm text-[#f2f2f2]/70">Taxa de Acerto</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-[#8b0000] mb-2">
+                    <div className="text-2xl font-bold text-[#f2f2f2] mb-2">
                       {userStats.xp_total}
                     </div>
                     <div className="text-sm text-[#f2f2f2]/70">XP Total</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-[#8b0000] mb-2">
+                    <div className="text-2xl font-bold text-[#f2f2f2] mb-2">
                       {userStats.dias_estudo}
                     </div>
                     <div className="text-sm text-[#f2f2f2]/70">Dias de Estudo</div>
@@ -540,7 +540,7 @@ const Perfil: React.FC = () => {
               <div className="bg-[#242424] rounded-lg p-6 border border-[#333333]">
                 <h2 className="text-xl font-semibold mb-4">Sequência de Estudo</h2>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-[#8b0000] mb-2">
+                  <div className="text-4xl font-bold text-[#f2f2f2] mb-2">
                     {userStats.streak_atual}
                   </div>
                   <div className="text-sm text-[#f2f2f2]/70">dias consecutivos</div>

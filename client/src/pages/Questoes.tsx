@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCategories } from '../contexts/CategoriesContext';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase.ts';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FormattedText from '../components/FormattedText';
 
@@ -56,6 +56,15 @@ interface Orgao {
   nome: string;
 }
 
+interface CadernoPronto {
+  id: string;
+  nome: string;
+  descricao?: string;
+  filtros: any;
+  link: string;
+  created_at: string;
+}
+
 const Questoes: React.FC = () => {
   const { user } = useAuth();
   const { disciplines, subjects, bancas, orgaos, escolaridades, loading: categoriesLoading, reloadCategories } = useCategories();
@@ -67,6 +76,10 @@ const Questoes: React.FC = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [showAnosFilter, setShowAnosFilter] = useState(false);
+  const [showCreateCaderno, setShowCreateCaderno] = useState(false);
+  const [cadernoNome, setCadernoNome] = useState('');
+  const [cadernoDescricao, setCadernoDescricao] = useState('');
 
   const [filters, setFilters] = useState({
     disciplina_id: '',
@@ -82,8 +95,31 @@ const Questoes: React.FC = () => {
   useEffect(() => {
     if (user) {
       loadData();
+      loadCadernoFromURL();
     }
   }, [user]);
+
+  // Função para carregar caderno da URL
+  const loadCadernoFromURL = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const cadernoId = urlParams.get('caderno');
+    const filtrosParam = urlParams.get('filtros');
+
+    if (cadernoId && filtrosParam) {
+      try {
+        // Decodificar filtros da URL
+        const filtrosDecodificados = JSON.parse(decodeURIComponent(filtrosParam));
+        setFilters(filtrosDecodificados);
+        
+        // Aplicar filtros automaticamente
+        setTimeout(() => {
+          applyFilters();
+        }, 1000); // Aguardar carregamento dos dados
+      } catch (error) {
+        console.error('Erro ao carregar filtros do caderno:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     // Aplicar filtros apenas quando as questões mudarem, não quando os filtros mudarem
@@ -266,6 +302,38 @@ const Questoes: React.FC = () => {
       status_resposta: 'todas',
       search: ''
     });
+  };
+
+  // Função para criar caderno pronto
+  const createCadernoPronto = async () => {
+    if (!cadernoNome.trim() || !user) return;
+
+    try {
+      const cadernoData = {
+        nome: cadernoNome,
+        descricao: cadernoDescricao,
+        filtros: filters,
+        usuario_id: user.id,
+        link: `questoes?caderno=${Date.now()}`, // Link único
+        created_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('cadernos_prontos')
+        .insert(cadernoData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      alert(`Caderno "${cadernoNome}" criado com sucesso!`);
+      setShowCreateCaderno(false);
+      setCadernoNome('');
+      setCadernoDescricao('');
+    } catch (error) {
+      console.error('Erro ao criar caderno:', error);
+      alert('Erro ao criar caderno. Tente novamente.');
+    }
   };
 
   const currentQuestion = filteredQuestions[currentQuestionIndex];
@@ -472,41 +540,59 @@ const Questoes: React.FC = () => {
               </select>
             </div>
 
-            {/* Anos */}
+            {/* Anos - Filtro Recolhível */}
             <div>
               <label className="block text-sm font-medium mb-2">Anos</label>
-              <div className="max-h-32 overflow-y-auto bg-[#1b1b1b] border border-[#333333] rounded-lg p-2">
-                {/* Opção "Todos os anos" */}
-                <label className="flex items-center space-x-2 py-1 cursor-pointer hover:bg-[#333333] rounded px-2 border-b border-[#333333] mb-2">
-                  <input
-                    type="checkbox"
-                    checked={filters.anos.length === 0}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFilters(prev => ({ ...prev, anos: [] }));
-                      }
-                    }}
-                    className="rounded border-[#333333] bg-[#1b1b1b] text-[#8b0000] focus:ring-[#8b0000]"
-                  />
-                  <span className="text-[#f2f2f2] text-sm font-medium">Todos os anos</span>
-                </label>
-                {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(ano => (
-                  <label key={ano} className="flex items-center space-x-2 py-1 cursor-pointer hover:bg-[#333333] rounded px-2">
-                    <input
-                      type="checkbox"
-                      checked={filters.anos.includes(ano)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFilters(prev => ({ ...prev, anos: [...prev.anos, ano] }));
-                        } else {
-                          setFilters(prev => ({ ...prev, anos: prev.anos.filter(a => a !== ano) }));
-                        }
-                      }}
-                      className="rounded border-[#333333] bg-[#1b1b1b] text-[#8b0000] focus:ring-[#8b0000]"
-                    />
-                    <span className="text-[#f2f2f2] text-sm">{ano}</span>
-                  </label>
-                ))}
+              <div className="relative">
+                <button
+                  onClick={() => setShowAnosFilter(!showAnosFilter)}
+                  className="w-full bg-[#1b1b1b] border border-[#333333] rounded-lg px-4 py-2 text-[#f2f2f2] focus:border-[#8b0000] focus:outline-none flex justify-between items-center"
+                >
+                  <span>
+                    {filters.anos.length === 0 
+                      ? 'Todos os anos' 
+                      : `${filters.anos.length} ano(s) selecionado(s)`
+                    }
+                  </span>
+                  <i className={`fas fa-chevron-${showAnosFilter ? 'up' : 'down'} text-sm`}></i>
+                </button>
+                
+                {showAnosFilter && (
+                  <div className="absolute z-10 w-full mt-1 max-h-48 overflow-y-auto bg-[#1b1b1b] border border-[#333333] rounded-lg p-2 shadow-lg">
+                    {/* Opção "Todos os anos" */}
+                    <label className="flex items-center space-x-2 py-1 cursor-pointer hover:bg-[#333333] rounded px-2 border-b border-[#333333] mb-2">
+                      <input
+                        type="checkbox"
+                        checked={filters.anos.length === 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFilters(prev => ({ ...prev, anos: [] }));
+                            setShowAnosFilter(false);
+                          }
+                        }}
+                        className="rounded border-[#333333] bg-[#1b1b1b] text-[#8b0000] focus:ring-[#8b0000]"
+                      />
+                      <span className="text-[#f2f2f2] text-sm font-medium">Todos os anos</span>
+                    </label>
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(ano => (
+                      <label key={ano} className="flex items-center space-x-2 py-1 cursor-pointer hover:bg-[#333333] rounded px-2">
+                        <input
+                          type="checkbox"
+                          checked={filters.anos.includes(ano)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFilters(prev => ({ ...prev, anos: [...prev.anos, ano] }));
+                            } else {
+                              setFilters(prev => ({ ...prev, anos: prev.anos.filter(a => a !== ano) }));
+                            }
+                          }}
+                          className="rounded border-[#333333] bg-[#1b1b1b] text-[#8b0000] focus:ring-[#8b0000]"
+                        />
+                        <span className="text-[#f2f2f2] text-sm">{ano}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
               {filters.anos.length > 0 && (
                 <div className="mt-2 text-xs text-[#f2f2f2]/70">
@@ -531,7 +617,7 @@ const Questoes: React.FC = () => {
         </div>
       </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <button
               onClick={handleApplyFilters}
               className="bg-[#8b0000] hover:bg-[#6b0000] text-[#f2f2f2] px-6 py-2 rounded-lg font-medium transition-colors duration-200"
@@ -551,39 +637,100 @@ const Questoes: React.FC = () => {
               <i className="fas fa-sync-alt"></i>
               Atualizar Filtros
             </button>
+            <button
+              onClick={() => setShowCreateCaderno(true)}
+              className="bg-[#22c55e] hover:bg-[#16a34a] text-[#f2f2f2] px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+            >
+              <i className="fas fa-book"></i>
+              Criar Caderno
+            </button>
+            <button
+              onClick={() => window.location.href = '/meus-cadernos'}
+              className="bg-[#0066cc] hover:bg-[#0052a3] text-[#f2f2f2] px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+            >
+              <i className="fas fa-folder-open"></i>
+              Meus Cadernos
+            </button>
           </div>
             </div>
 
-        {/* Estatísticas */}
-        <div className="bg-[#242424] rounded-lg p-6 mb-6 border border-[#333333]">
-          <h2 className="text-xl font-semibold mb-4">Estatísticas</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {/* Estatísticas - Painel Menor */}
+        <div className="bg-[#242424] rounded-lg p-4 mb-6 border border-[#333333]">
+          <h2 className="text-lg font-semibold mb-3">Estatísticas</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-[#8b0000] mb-2">
+              <div className="text-xl font-bold text-[#f2f2f2] mb-1">
                 {filteredQuestions.length}
               </div>
-              <div className="text-sm text-[#f2f2f2]">Questões Encontradas</div>
+              <div className="text-xs text-[#f2f2f2]/70">Questões Encontradas</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[#8b0000] mb-2">
+              <div className="text-xl font-bold text-[#f2f2f2] mb-1">
                 {filteredQuestions.filter(q => !q.respondida).length}
               </div>
-              <div className="text-sm text-[#f2f2f2]">Não Respondidas</div>
+              <div className="text-xs text-[#f2f2f2]/70">Não Respondidas</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[#8b0000] mb-2">
+              <div className="text-xl font-bold text-[#f2f2f2] mb-1">
                 {filteredQuestions.filter(q => q.respondida && q.acertou).length}
               </div>
-              <div className="text-sm text-[#f2f2f2]">Acertadas</div>
+              <div className="text-xs text-[#f2f2f2]/70">Acertadas</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[#8b0000] mb-2">
+              <div className="text-xl font-bold text-[#f2f2f2] mb-1">
                 {filteredQuestions.filter(q => q.respondida && !q.acertou).length}
               </div>
-              <div className="text-sm text-[#f2f2f2]">Erradas</div>
+              <div className="text-xs text-[#f2f2f2]/70">Erradas</div>
           </div>
         </div>
       </div>
+
+        {/* Modal Criar Caderno */}
+        {showCreateCaderno && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-[#242424] rounded-lg p-6 w-full max-w-md border border-[#333333]">
+              <h3 className="text-xl font-semibold mb-4 text-[#f2f2f2]">Criar Caderno Pronto</h3>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-[#f2f2f2]">Nome do Caderno</label>
+                <input
+                  type="text"
+                  value={cadernoNome}
+                  onChange={(e) => setCadernoNome(e.target.value)}
+                  placeholder="Ex: Questões de Direito Constitucional 2023"
+                  className="w-full bg-[#1b1b1b] border border-[#333333] rounded-lg px-4 py-2 text-[#f2f2f2] focus:border-[#8b0000] focus:outline-none"
+                />
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2 text-[#f2f2f2]">Descrição (opcional)</label>
+                <textarea
+                  value={cadernoDescricao}
+                  onChange={(e) => setCadernoDescricao(e.target.value)}
+                  placeholder="Descreva o conteúdo do caderno..."
+                  rows={3}
+                  className="w-full bg-[#1b1b1b] border border-[#333333] rounded-lg px-4 py-2 text-[#f2f2f2] focus:border-[#8b0000] focus:outline-none"
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={createCadernoPronto}
+                  disabled={!cadernoNome.trim()}
+                  className="flex-1 bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-50 text-[#f2f2f2] px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                >
+                  Criar Caderno
+                </button>
+                <button
+                  onClick={() => setShowCreateCaderno(false)}
+                  className="flex-1 bg-[#333333] hover:bg-[#444444] text-[#f2f2f2] px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Questão Atual */}
         {currentQuestion && (
@@ -618,7 +765,7 @@ const Questoes: React.FC = () => {
               </h3>
             </div>
 
-            {/* Alternativas */}
+            {/* Alternativas - Cor corrigida para #f2f2f2 */}
             {!showExplanation && (
               <div className="space-y-3 mb-6">
                 {getAlternatives().map((alt) => (
@@ -631,8 +778,8 @@ const Questoes: React.FC = () => {
                         : 'border-[#333333] hover:border-[#8b0000]'
                     }`}
                   >
-                    <span className="font-medium text-[#8b0000] mr-3">{alt.key})</span>
-                    {alt.text}
+                    <span className="font-medium text-[#f2f2f2] mr-3">{alt.key})</span>
+                    <span className="text-[#f2f2f2]">{alt.text}</span>
                   </button>
                 ))}
                 </div>

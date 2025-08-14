@@ -55,6 +55,13 @@ interface ThemeContextType {
   applyCSSVariables: (cssVars: string) => void;
 }
 
+// Tipo para o payload do Realtime
+interface ThemeChangePayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: Theme;
+  old: Theme;
+}
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 interface ThemeProviderProps {
@@ -179,44 +186,78 @@ const DEFAULT_THEME: Theme = {
 function generateCSSVariables(theme: Theme): string {
   const cssVars: string[] = [];
   
+  // Verificar se o tema e suas propriedades existem
+  if (!theme || !theme.tokens) {
+    console.warn('Tema inválido fornecido para generateCSSVariables:', theme);
+    return ':root {}';
+  }
+  
   // Cores
-  Object.entries(theme.tokens.colors).forEach(([key, value]) => {
-    cssVars.push(`--color-${key}: ${value.hex};`);
-  });
+  if (theme.tokens.colors && typeof theme.tokens.colors === 'object') {
+    Object.entries(theme.tokens.colors).forEach(([key, value]) => {
+      if (value && typeof value === 'object' && 'hex' in value) {
+        cssVars.push(`--color-${key}: ${value.hex};`);
+      }
+    });
+  }
   
   // Espaçamentos
-  Object.entries(theme.tokens.spacing).forEach(([key, value]) => {
-    cssVars.push(`--spacing-${key}: ${value};`);
-  });
+  if (theme.tokens.spacing && typeof theme.tokens.spacing === 'object') {
+    Object.entries(theme.tokens.spacing).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        cssVars.push(`--spacing-${key}: ${value};`);
+      }
+    });
+  }
   
   // Tipografia
-  Object.entries(theme.tokens.typography).forEach(([key, value]) => {
-    cssVars.push(`--font-${key}: ${value};`);
-  });
+  if (theme.tokens.typography && typeof theme.tokens.typography === 'object') {
+    Object.entries(theme.tokens.typography).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        cssVars.push(`--font-${key}: ${value};`);
+      }
+    });
+  }
   
   // Bordas
-  Object.entries(theme.tokens.borders).forEach(([key, value]) => {
-    cssVars.push(`--border-${key}: ${value};`);
-  });
+  if (theme.tokens.borders && typeof theme.tokens.borders === 'object') {
+    Object.entries(theme.tokens.borders).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        cssVars.push(`--border-${key}: ${value};`);
+      }
+    });
+  }
   
   // Sombras
-  Object.entries(theme.tokens.shadows).forEach(([key, value]) => {
-    cssVars.push(`--shadow-${key}: ${value};`);
-  });
+  if (theme.tokens.shadows && typeof theme.tokens.shadows === 'object') {
+    Object.entries(theme.tokens.shadows).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        cssVars.push(`--shadow-${key}: ${value};`);
+      }
+    });
+  }
   
   // Transições
-  Object.entries(theme.tokens.transitions).forEach(([key, value]) => {
-    cssVars.push(`--transition-${key}: ${value};`);
-  });
+  if (theme.tokens.transitions && typeof theme.tokens.transitions === 'object') {
+    Object.entries(theme.tokens.transitions).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        cssVars.push(`--transition-${key}: ${value};`);
+      }
+    });
+  }
   
   // Tokens semânticos
-  Object.entries(theme.semantic).forEach(([category, values]) => {
-    if (typeof values === 'object' && values !== null) {
-      Object.entries(values).forEach(([variant, value]) => {
-        cssVars.push(`--${category}-${variant}: ${value};`);
-      });
-    }
-  });
+  if (theme.semantic && typeof theme.semantic === 'object') {
+    Object.entries(theme.semantic).forEach(([category, values]) => {
+      if (typeof values === 'object' && values !== null) {
+        Object.entries(values).forEach(([variant, value]) => {
+          if (value !== undefined && value !== null) {
+            cssVars.push(`--${category}-${variant}: ${value};`);
+          }
+        });
+      }
+    });
+  }
   
   return `:root {\n  ${cssVars.join('\n  ')}\n}`;
 }
@@ -282,7 +323,33 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         return null;
       }
 
-      return data as Theme;
+      // Verificar se o tema tem todas as propriedades necessárias
+      if (!data || !data.tokens || !data.semantic) {
+        console.warn('Tema ativo inválido ou incompleto:', data);
+        return null;
+      }
+
+      // Garantir que todas as propriedades do tema existam
+      const validatedTheme: Theme = {
+        id: data.id || 'default',
+        name: data.name || 'Tema Padrão',
+        description: data.description || '',
+        tokens: {
+          colors: data.tokens?.colors || DEFAULT_THEME.tokens.colors,
+          spacing: data.tokens?.spacing || DEFAULT_THEME.tokens.spacing,
+          typography: data.tokens?.typography || DEFAULT_THEME.tokens.typography,
+          borders: data.tokens?.borders || DEFAULT_THEME.tokens.borders,
+          shadows: data.tokens?.shadows || DEFAULT_THEME.tokens.shadows,
+          transitions: data.tokens?.transitions || DEFAULT_THEME.tokens.transitions,
+        },
+        semantic: data.semantic || DEFAULT_THEME.semantic,
+        is_active: data.is_active || false,
+        is_default: data.is_default || false,
+        created_at: data.created_at || new Date().toISOString(),
+        updated_at: data.updated_at || new Date().toISOString(),
+      };
+
+      return validatedTheme;
     } catch (error) {
       console.warn('Erro ao carregar tema ativo:', error);
       return null;
@@ -472,7 +539,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           schema: 'public',
           table: 'themes'
         },
-        async (payload) => {
+        async (payload: ThemeChangePayload) => {
           console.log('Mudança detectada na tabela themes:', payload);
           
           // Recarregar tema ativo se necessário

@@ -234,6 +234,41 @@ const AdminQuestoes: React.FC = () => {
         alternativaE = null;
       }
 
+      // Garantir que escolaridade_id tenha um valor padrão se não foi selecionado
+      let escolaridadeId = editingQuestion.escolaridade_id;
+      if (!escolaridadeId) {
+        // Buscar o ID da escolaridade MEDIO como padrão
+        const { data: escolaridadeData } = await supabase
+          .from('escolaridades')
+          .select('id')
+          .eq('nivel', 'MEDIO')
+          .single();
+        
+        escolaridadeId = escolaridadeData?.id;
+        if (!escolaridadeId) {
+          throw new Error('Escolaridade padrão não encontrada');
+        }
+      }
+
+      console.log('Dados sendo enviados:', {
+        enunciado: editingQuestion.enunciado!.trim(),
+        alternativa_a: alternativaA,
+        alternativa_b: alternativaB,
+        alternativa_c: alternativaC,
+        alternativa_d: alternativaD,
+        alternativa_e: alternativaE,
+        gabarito: editingQuestion.gabarito!,
+        tipo: editingQuestion.tipo || 'MULTIPLA_ESCOLHA',
+        comentario_professor: editingQuestion.comentario_professor?.trim() || null,
+        ano: ano,
+        disciplina_id: editingQuestion.disciplina_id!,
+        assunto_id: editingQuestion.assunto_id!,
+        banca_id: editingQuestion.banca_id!,
+        orgao_id: orgaoId!,
+        escolaridade_id: escolaridadeId,
+        ativo: true
+      });
+
       const { data, error } = await supabase
         .from('questoes')
         .insert([{
@@ -251,6 +286,7 @@ const AdminQuestoes: React.FC = () => {
           assunto_id: editingQuestion.assunto_id!,
           banca_id: editingQuestion.banca_id!,
           orgao_id: orgaoId!,
+          escolaridade_id: escolaridadeId,
           ativo: true
         }])
         .select(`
@@ -361,6 +397,22 @@ const AdminQuestoes: React.FC = () => {
         alternativaE = null;
       }
 
+      // Garantir que escolaridade_id tenha um valor padrão se não foi selecionado
+      let escolaridadeId = editingQuestion.escolaridade_id;
+      if (!escolaridadeId) {
+        // Buscar o ID da escolaridade MEDIO como padrão
+        const { data: escolaridadeData } = await supabase
+          .from('escolaridades')
+          .select('id')
+          .eq('nivel', 'MEDIO')
+          .single();
+        
+        escolaridadeId = escolaridadeData?.id;
+        if (!escolaridadeId) {
+          throw new Error('Escolaridade padrão não encontrada');
+        }
+      }
+
       const { error } = await supabase
         .from('questoes')
         .update({
@@ -377,7 +429,8 @@ const AdminQuestoes: React.FC = () => {
           disciplina_id: editingQuestion.disciplina_id!,
           assunto_id: editingQuestion.assunto_id!,
           banca_id: editingQuestion.banca_id!,
-          orgao_id: orgaoId!
+          orgao_id: orgaoId!,
+          escolaridade_id: escolaridadeId
         })
         .eq('id', selectedQuestion.id);
 

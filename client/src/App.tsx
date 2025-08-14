@@ -29,6 +29,7 @@ import AdminNotificacoes from './pages/admin/AdminNotificacoes';
 import AdminDicasEstudo from './pages/admin/AdminDicasEstudo';
 import AdminPoliticasTermos from './pages/admin/AdminPoliticasTermos';
 import AdminDesign from './pages/admin/AdminDesign';
+import MeusCadernos from './pages/MeusCadernos';
 import PoliticasPrivacidade from './pages/PoliticasPrivacidade';
 import TermosUso from './pages/TermosUso';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -123,6 +124,14 @@ const AppContent = () => {
             <ProtectedRoute>
               <Layout>
                 <Perfil />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/meus-cadernos" element={
+            <ProtectedRoute>
+              <Layout>
+                <MeusCadernos />
               </Layout>
             </ProtectedRoute>
           } />

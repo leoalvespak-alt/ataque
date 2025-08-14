@@ -21,10 +21,6 @@ const Admin: React.FC = () => {
     totalCategories: 0,
     activeSubscriptions: 0
   });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [uploadLoading, setUploadLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -58,76 +54,6 @@ const Admin: React.FC = () => {
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
     }
-  };
-
-  const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setMessage({ type: 'error', text: 'Por favor, selecione apenas arquivos de imagem.' });
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'O arquivo deve ter no máximo 2MB.' });
-      return;
-    }
-
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setPreviewUrl(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-    setMessage(null);
-  };
-
-  const handleFileDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFileSelect(files[0]);
-    }
-  };
-
-  const uploadLogo = async () => {
-    if (!selectedFile) {
-      setMessage({ type: 'error', text: 'Nenhum arquivo selecionado.' });
-      return;
-    }
-
-    setUploadLoading(true);
-    setMessage(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('logo', selectedFile);
-
-      const response = await fetch('/api/admin/upload-logo', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setMessage({ type: 'success', text: 'Logo atualizada com sucesso!' });
-        resetUpload();
-      } else {
-        setMessage({ type: 'error', text: data.message || 'Erro ao fazer upload da logo.' });
-      }
-    } catch (error) {
-      console.error('Erro no upload:', error);
-      setMessage({ type: 'error', text: 'Erro de conexão. Tente novamente.' });
-    } finally {
-      setUploadLoading(false);
-    }
-  };
-
-  const resetUpload = () => {
-    setSelectedFile(null);
-    setPreviewUrl('');
   };
 
   const handleLogout = () => {
@@ -187,87 +113,17 @@ const Admin: React.FC = () => {
           </div>
         </div>
 
-        {/* Upload de Logo */}
-        <div className="bg-[#242424] rounded-lg p-8 mb-8 border border-[#333333]">
-          <h2 className="text-2xl font-semibold mb-6">Logo da Plataforma</h2>
-          
-          {message && (
-            <div className={`p-4 rounded-lg mb-4 ${
-              message.type === 'success' 
-                ? 'bg-green-900/20 border border-green-500 text-green-400' 
-                : 'bg-red-900/20 border border-red-500 text-red-400'
-            }`}>
-              {message.text}
-            </div>
-          )}
-
-          <div
-            className="border-2 border-dashed border-[#333333] rounded-lg p-10 text-center cursor-pointer transition-all duration-300 hover:border-[#8b0000] hover:bg-[#8b0000]/10"
-            onDrop={handleFileDrop}
-            onDragOver={(e) => e.preventDefault()}
-            onClick={() => document.getElementById('logoFile')?.click()}
-          >
-            <i className="fas fa-cloud-upload-alt text-5xl text-[#f2f2f2] mb-4"></i>
-            <div className="text-lg text-[#f2f2f2] mb-2">
-              Clique ou arraste uma imagem aqui
-            </div>
-            <div className="text-sm text-[#f2f2f2]">
-              PNG, JPG ou SVG (máx. 2MB)
-            </div>
-          </div>
-
-          <input
-            id="logoFile"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-          />
-
-          {previewUrl && (
-            <div className="mt-6 text-center">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="max-w-[200px] max-h-[100px] rounded-lg border border-[#333333] mx-auto mb-4"
-              />
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={uploadLogo}
-                  disabled={uploadLoading}
-                  className="bg-[#8b0000] hover:bg-[#6b0000] text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
-                >
-                  {uploadLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Enviando...
-                    </div>
-                  ) : (
-                    'Enviar Logo'
-                  )}
-                </button>
-                <button
-                  onClick={resetUpload}
-                  className="bg-[#333333] hover:bg-[#444444] text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Cards de Administração */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Link
-              to="/admin/usuarios"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Link
+            to="/admin/usuarios"
             className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
               <i className="fas fa-users text-2xl text-white"></i>
-                  </div>
+            </div>
             <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
-                    Gerenciar Usuários
+              Gerenciar Usuários
             </h3>
             <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
               Visualize, edite e gerencie todos os usuários da plataforma. 
@@ -276,18 +132,18 @@ const Admin: React.FC = () => {
             <div className="flex items-center gap-2 text-[#8b0000] font-medium">
               <span>Gerenciar</span>
               <i className="fas fa-arrow-right"></i>
-              </div>
-            </Link>
+            </div>
+          </Link>
 
-            <Link
-              to="/admin/questoes"
+          <Link
+            to="/admin/questoes"
             className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
               <i className="fas fa-question-circle text-2xl text-white"></i>
-                  </div>
+            </div>
             <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
-                    Gerenciar Questões
+              Gerenciar Questões
             </h3>
             <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
               Adicione, edite e remova questões. Organize por disciplina, 
@@ -296,18 +152,18 @@ const Admin: React.FC = () => {
             <div className="flex items-center gap-2 text-[#8b0000] font-medium">
               <span>Gerenciar</span>
               <i className="fas fa-arrow-right"></i>
-              </div>
-            </Link>
+            </div>
+          </Link>
 
-            <Link
-              to="/admin/categorias"
+          <Link
+            to="/admin/categorias"
             className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
               <i className="fas fa-tags text-2xl text-white"></i>
-                  </div>
+            </div>
             <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
-                    Categorias
+              Categorias
             </h3>
             <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
               Gerencie disciplinas, assuntos e organizações. 
@@ -316,18 +172,18 @@ const Admin: React.FC = () => {
             <div className="flex items-center gap-2 text-[#8b0000] font-medium">
               <span>Gerenciar</span>
               <i className="fas fa-arrow-right"></i>
-              </div>
-            </Link>
+            </div>
+          </Link>
 
-            <Link
-              to="/admin/relatorios"
+          <Link
+            to="/admin/relatorios"
             className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
               <i className="fas fa-chart-bar text-2xl text-white"></i>
-                  </div>
+            </div>
             <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
-                    Relatórios
+              Relatórios
             </h3>
             <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
               Acesse relatórios detalhados sobre o uso da plataforma, 
@@ -336,18 +192,18 @@ const Admin: React.FC = () => {
             <div className="flex items-center gap-2 text-[#8b0000] font-medium">
               <span>Ver Relatórios</span>
               <i className="fas fa-arrow-right"></i>
-              </div>
-            </Link>
+            </div>
+          </Link>
 
-            <Link
-              to="/admin/planos"
+          <Link
+            to="/admin/planos"
             className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
               <i className="fas fa-crown text-2xl text-white"></i>
-                  </div>
+            </div>
             <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
-                    Planos
+              Planos
             </h3>
             <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
               Gerencie assinaturas, visualize pagamentos e 
@@ -356,18 +212,38 @@ const Admin: React.FC = () => {
             <div className="flex items-center gap-2 text-[#8b0000] font-medium">
               <span>Gerenciar</span>
               <i className="fas fa-arrow-right"></i>
-              </div>
-            </Link>
+            </div>
+          </Link>
 
-            <Link
-              to="/admin/notificacoes"
+          <Link
+            to="/admin/comentarios"
+            className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <i className="fas fa-comments text-2xl text-white"></i>
+            </div>
+            <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
+              Comentários
+            </h3>
+            <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
+              Gerencie comentários dos usuários nas questões. 
+              Modere conteúdo e mantenha a qualidade.
+            </p>
+            <div className="flex items-center gap-2 text-[#8b0000] font-medium">
+              <span>Gerenciar</span>
+              <i className="fas fa-arrow-right"></i>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/notificacoes"
             className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
               <i className="fas fa-bell text-2xl text-white"></i>
-                  </div>
+            </div>
             <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
-                    Notificações
+              Notificações
             </h3>
             <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
               Crie e gerencie notificações para os usuários. 
@@ -376,18 +252,58 @@ const Admin: React.FC = () => {
             <div className="flex items-center gap-2 text-[#8b0000] font-medium">
               <span>Gerenciar</span>
               <i className="fas fa-arrow-right"></i>
-              </div>
-            </Link>
+            </div>
+          </Link>
 
-            <Link
-              to="/admin/configuracoes"
+          <Link
+            to="/admin/dicas-estudo"
+            className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <i className="fas fa-lightbulb text-2xl text-white"></i>
+            </div>
+            <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
+              Dicas de Estudo
+            </h3>
+            <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
+              Crie e gerencie dicas de estudo para ajudar os alunos. 
+              Compartilhe estratégias e técnicas eficazes.
+            </p>
+            <div className="flex items-center gap-2 text-[#8b0000] font-medium">
+              <span>Gerenciar</span>
+              <i className="fas fa-arrow-right"></i>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/politicas-termos"
+            className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <i className="fas fa-file-contract text-2xl text-white"></i>
+            </div>
+            <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
+              Políticas e Termos
+            </h3>
+            <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
+              Gerencie políticas de privacidade e termos de uso. 
+              Mantenha a documentação legal atualizada.
+            </p>
+            <div className="flex items-center gap-2 text-[#8b0000] font-medium">
+              <span>Gerenciar</span>
+              <i className="fas fa-arrow-right"></i>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/configuracoes"
             className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
               <i className="fas fa-cog text-2xl text-white"></i>
-                  </div>
+            </div>
             <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
-                    Configurações
+              Configurações
             </h3>
             <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
               Configure parâmetros da plataforma, notificações, 
@@ -396,8 +312,28 @@ const Admin: React.FC = () => {
             <div className="flex items-center gap-2 text-[#8b0000] font-medium">
               <span>Configurar</span>
               <i className="fas fa-arrow-right"></i>
-              </div>
-            </Link>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/design"
+            className="bg-[#242424] rounded-lg p-6 border border-[#333333] hover:transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-[#8b0000] to-[#a00000] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <i className="fas fa-palette text-2xl text-white"></i>
+            </div>
+            <h3 className="text-xl font-semibold mb-3 text-[#f2f2f2]">
+              Design e Logo
+            </h3>
+            <p className="text-[#f2f2f2] mb-4 text-sm leading-relaxed">
+              Personalize o visual da plataforma. 
+              Altere logos, cores e elementos visuais.
+            </p>
+            <div className="flex items-center gap-2 text-[#8b0000] font-medium">
+              <span>Personalizar</span>
+              <i className="fas fa-arrow-right"></i>
+            </div>
+          </Link>
 
           <button
             onClick={handleLogout}
@@ -416,7 +352,7 @@ const Admin: React.FC = () => {
             <div className="flex items-center gap-2 text-[#f2f2f2] font-medium">
               <span>Sair</span>
               <i className="fas fa-arrow-right"></i>
-          </div>
+            </div>
           </button>
         </div>
       </div>

@@ -193,7 +193,7 @@ const Ranking: React.FC = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-[#8b0000]">{userStats.xp} XP</div>
+                <div className="text-2xl font-bold text-[#f2f2f2]">{userStats.xp} XP</div>
                 <div className="text-sm text-[#f2f2f2]/70">
                   {getLevelFromXP(userStats.xp).title} - Nível {getLevelFromXP(userStats.xp).level}
                 </div>
@@ -201,15 +201,15 @@ const Ranking: React.FC = () => {
             </div>
             <div className="grid grid-cols-3 gap-4 mt-4">
               <div className="text-center">
-                <div className="text-lg font-bold text-[#8b0000]">{userStats.questoes_respondidas}</div>
+                <div className="text-lg font-bold text-[#f2f2f2]">{userStats.questoes_respondidas}</div>
                 <div className="text-sm text-[#f2f2f2]/70">Questões Respondidas</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-[#8b0000]">{userStats.taxa_acerto}%</div>
+                <div className="text-lg font-bold text-[#f2f2f2]">{userStats.taxa_acerto}%</div>
                 <div className="text-sm text-[#f2f2f2]/70">Taxa de Acerto</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-[#8b0000]">
+                <div className="text-lg font-bold text-[#f2f2f2]">
                   {Math.round(userStats.xp / Math.max(userStats.questoes_respondidas, 1))}
                 </div>
                 <div className="text-sm text-[#f2f2f2]/70">XP por Questão</div>
@@ -261,7 +261,7 @@ const Ranking: React.FC = () => {
                     </div>
                     <div className="text-center">
                       <div className="text-sm text-[#f2f2f2]/70">XP</div>
-                      <div className="text-lg font-bold text-[#8b0000]">{rankingUser.xp}</div>
+                      <div className="text-lg font-bold text-[#f2f2f2]">{rankingUser.xp}</div>
                     </div>
                   </div>
                 </div>

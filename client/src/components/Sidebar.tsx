@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLogo } from '../contexts/LogoContext';
+import Logo from './Logo';
 
 interface SidebarItem {
   path: string;
@@ -19,6 +20,7 @@ const Sidebar: React.FC = () => {
   const navigationItems: SidebarItem[] = [
     { path: '/dashboard', name: 'Dashboard', icon: 'fas fa-home' },
     { path: '/questoes', name: 'Questões', icon: 'fas fa-question-circle' },
+    { path: '/meus-cadernos', name: 'Meus Cadernos', icon: 'fas fa-book' },
     { path: '/estatisticas', name: 'Estatísticas', icon: 'fas fa-chart-line' },
     { path: '/ranking', name: 'Ranking', icon: 'fas fa-trophy' },
     { path: '/planos', name: 'Planos', icon: 'fas fa-crown' },
@@ -58,22 +60,12 @@ const Sidebar: React.FC = () => {
       {/* Logo - Header fixo */}
       <div className="flex items-center justify-center h-16 border-b border-[#333333] flex-shrink-0">
         <Link to="/dashboard" className="flex items-center">
-          <div className="w-8 h-8 bg-[#8b0000] rounded-lg flex items-center justify-center">
-            {logoConfig ? (
-              <img 
-                src={logoConfig.url} 
-                alt="Logo" 
-                className="w-6 h-6 object-contain"
-              />
-            ) : (
-              <i className="fas fa-graduation-cap text-white text-sm"></i>
-            )}
-          </div>
-          {isExpanded && (
-            <span className="ml-3 text-lg font-bold text-[#8b0000] whitespace-nowrap">
-              Rota de Ataque
-            </span>
-          )}
+          <Logo 
+            height={32} 
+            width={32} 
+            alt="Rota de Ataque"
+            style={{ borderRadius: '8px' }}
+          />
         </Link>
       </div>
 

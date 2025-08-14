@@ -27,19 +27,33 @@ const AdminDesign: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'colors' | 'typography' | 'spacing' | 'borders' | 'shadows'>('colors');
   const [saving, setSaving] = useState(false);
 
+  // Debug logs
+  useEffect(() => {
+    console.log('🔍 AdminDesign Debug:', {
+      user: user ? { id: user.id, tipo_usuario: user.tipo_usuario } : null,
+      currentTheme: currentTheme ? { id: currentTheme.id, name: currentTheme.name } : null,
+      themes: themes.length,
+      loading,
+      error
+    });
+  }, [user, currentTheme, themes, loading, error]);
+
   // Verificar se o usuário é gestor
   if (user?.tipo_usuario !== 'gestor') {
+    console.log('🚫 Usuário não é gestor:', user?.tipo_usuario);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Acesso Negado</h1>
           <p className="text-gray-600">Você não tem permissão para acessar esta página.</p>
+          <p className="text-sm text-gray-500 mt-2">Tipo de usuário: {user?.tipo_usuario || 'Não autenticado'}</p>
         </div>
       </div>
     );
   }
 
   useEffect(() => {
+    console.log('🔄 useEffect - currentTheme mudou:', currentTheme);
     if (currentTheme) {
       setSelectedTheme(currentTheme.id);
       setEditingTheme(currentTheme.tokens);
@@ -207,7 +221,9 @@ const AdminDesign: React.FC = () => {
     };
   };
 
+  // Loading state
   if (loading) {
+    console.log('⏳ AdminDesign: Loading...');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -215,16 +231,43 @@ const AdminDesign: React.FC = () => {
     );
   }
 
+  // Error state
   if (error) {
+    console.error('❌ AdminDesign: Error:', error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Erro</h1>
           <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Recarregar Página
+          </button>
         </div>
       </div>
     );
   }
+
+  // Verificar se há dados necessários
+  if (!currentTheme || !editingTheme) {
+    console.log('⚠️ AdminDesign: Dados insuficientes:', { currentTheme: !!currentTheme, editingTheme: !!editingTheme });
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Dados Não Encontrados</h1>
+          <p className="text-gray-600">Não foi possível carregar os dados do tema.</p>
+          <p className="text-sm text-gray-500 mt-2">
+            currentTheme: {currentTheme ? 'Sim' : 'Não'} | 
+            editingTheme: {editingTheme ? 'Sim' : 'Não'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('✅ AdminDesign: Renderizando página com sucesso');
 
   return (
     <div className="min-h-screen bg-gray-50">

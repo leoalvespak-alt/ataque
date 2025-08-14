@@ -67,15 +67,36 @@ const AdminPoliticasTermos: React.FC = () => {
       const chave = tipo === 'politicas' ? 'politicas_privacidade' : 'termos_uso';
       const valor = tipo === 'politicas' ? politicasPrivacidade : termosUso;
 
-      const { error } = await supabase
+      // Primeiro, verificar se o registro já existe
+      const { data: existingRecord } = await supabase
         .from('configuracoes_plataforma')
-        .upsert({
-          chave,
-          valor,
-          descricao: tipo === 'politicas' ? 'Políticas de Privacidade da Plataforma' : 'Termos de Uso da Plataforma'
-        });
+        .select('id')
+        .eq('chave', chave)
+        .single();
 
-      if (error) throw error;
+      let result;
+      
+      if (existingRecord) {
+        // Se existe, fazer update
+        result = await supabase
+          .from('configuracoes_plataforma')
+          .update({
+            valor,
+            descricao: tipo === 'politicas' ? 'Políticas de Privacidade da Plataforma' : 'Termos de Uso da Plataforma'
+          })
+          .eq('chave', chave);
+      } else {
+        // Se não existe, fazer insert
+        result = await supabase
+          .from('configuracoes_plataforma')
+          .insert({
+            chave,
+            valor,
+            descricao: tipo === 'politicas' ? 'Políticas de Privacidade da Plataforma' : 'Termos de Uso da Plataforma'
+          });
+      }
+
+      if (result.error) throw result.error;
 
       setMessage({ type: 'success', text: `${tipo === 'politicas' ? 'Políticas' : 'Termos'} salvos com sucesso!` });
     } catch (error) {

@@ -1,3 +1,16 @@
+/* Importar fontes personalizadas */
+@import url('https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Aptos:wght@300;400;500;600;700&display=swap');
+
+/* Classes de fonte */
+.font-saira {
+  font-family: 'Saira', sans-serif;
+}
+
+.font-aptos {
+  font-family: 'Aptos', sans-serif;
+}
+
 /* Estatísticas Styles */
 .estatisticas-container {
   max-width: 1200px;
@@ -5,6 +18,7 @@
   padding: 2rem;
   background-color: #1b1b1b;
   min-height: 100vh;
+  font-family: 'Aptos', sans-serif;
 }
 
 /* Estatísticas Header */
@@ -20,6 +34,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
+  font-family: 'Saira', sans-serif;
 }
 
 .estatisticas-header p {
@@ -27,6 +42,40 @@
   font-size: 1.1rem;
   max-width: 600px;
   margin: 0 auto;
+  font-family: 'Aptos', sans-serif;
+}
+
+/* Cards Principais */
+.dashboard-card {
+  background: linear-gradient(135deg, #242424 0%, #1b1b1b 100%);
+  border: 1px solid #333333;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8b0000, #c1121f);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  border-color: #8b0000;
+  box-shadow: 0 8px 25px rgba(139, 0, 0, 0.2);
+}
+
+.dashboard-card:hover::before {
+  opacity: 1;
 }
 
 /* Estatísticas Principais */
@@ -39,6 +88,7 @@
   font-size: 2rem;
   margin-bottom: 2rem;
   text-align: center;
+  font-family: 'Saira', sans-serif;
 }
 
 .estatisticas-grid {
@@ -48,12 +98,12 @@
 }
 
 .estatistica-card {
-  background-color: #2a2a2a;
+  background: linear-gradient(135deg, #242424 0%, #1b1b1b 100%);
   border: 1px solid #333;
   border-radius: 16px;
   padding: 2rem;
   text-align: center;
-  transition: transform 0.3s, border-color 0.3s;
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 }
@@ -65,7 +115,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #8b0000, #ff4444);
+  background: linear-gradient(90deg, #8b0000, #c1121f);
 }
 
 .estatistica-card:hover {
@@ -78,10 +128,11 @@
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  background: linear-gradient(45deg, #8b0000, #ff4444);
+  background: linear-gradient(45deg, #8b0000, #c1121f);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-family: 'Saira', sans-serif;
 }
 
 .estatistica-label {
@@ -89,12 +140,14 @@
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 1rem;
+  font-family: 'Aptos', sans-serif;
 }
 
 .estatistica-descricao {
   color: #888;
   font-size: 0.9rem;
   line-height: 1.5;
+  font-family: 'Aptos', sans-serif;
 }
 
 /* Seções de Conteúdo */
@@ -108,6 +161,7 @@
   margin-bottom: 2rem;
   text-align: center;
   position: relative;
+  font-family: 'Saira', sans-serif;
 }
 
 .estatisticas-section h2::after {
@@ -118,13 +172,30 @@
   transform: translateX(-50%);
   width: 60px;
   height: 3px;
-  background: linear-gradient(90deg, #8b0000, #ff4444);
+  background: linear-gradient(90deg, #8b0000, #c1121f);
   border-radius: 2px;
+}
+
+/* Gráficos */
+.chart-container {
+  background: linear-gradient(135deg, #242424 0%, #1b1b1b 100%);
+  border: 1px solid #333333;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-title {
+  color: #f2f2f2;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  font-family: 'Saira', sans-serif;
 }
 
 /* Tópicos de Dificuldade */
 .dificuldade-container {
-  background-color: #2a2a2a;
+  background: linear-gradient(135deg, #242424 0%, #1b1b1b 100%);
   border: 1px solid #333;
   border-radius: 16px;
   padding: 2rem;
@@ -138,24 +209,25 @@
 }
 
 .dificuldade-item {
-  background-color: #1b1b1b;
+  background: linear-gradient(135deg, #1b1b1b 0%, #242424 100%);
   border: 1px solid #333;
   border-radius: 12px;
   padding: 1.5rem;
   position: relative;
-  transition: transform 0.2s, border-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .dificuldade-item:hover {
   transform: translateY(-3px);
-  border-color: #ff4444;
+  border-color: #c1121f;
+  box-shadow: 0 6px 20px rgba(193, 18, 31, 0.2);
 }
 
 .dificuldade-rank {
   position: absolute;
   top: -10px;
   right: -10px;
-  background: linear-gradient(45deg, #ff4444, #ff6666);
+  background: linear-gradient(45deg, #c1121f, #dc2626);
   color: white;
   width: 35px;
   height: 35px;
@@ -165,7 +237,8 @@
   justify-content: center;
   font-weight: 700;
   font-size: 1rem;
-  box-shadow: 0 4px 8px rgba(255, 68, 68, 0.3);
+  box-shadow: 0 4px 8px rgba(193, 18, 31, 0.3);
+  font-family: 'Saira', sans-serif;
 }
 
 .dificuldade-item h3 {
@@ -173,13 +246,15 @@
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
   padding-right: 40px;
+  font-family: 'Saira', sans-serif;
 }
 
 .dificuldade-disciplina {
-  color: #8b0000;
+  color: #c1121f;
   font-size: 0.9rem;
   font-weight: 600;
   margin-bottom: 1rem;
+  font-family: 'Aptos', sans-serif;
 }
 
 .dificuldade-stats {
@@ -192,121 +267,173 @@
 .dificuldade-stats span {
   color: #cccccc;
   font-size: 0.9rem;
+  font-family: 'Aptos', sans-serif;
 }
 
 .dificuldade-percentual {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ff4444;
+  color: #c1121f;
   text-align: center;
   padding: 0.5rem;
-  background-color: rgba(255, 68, 68, 0.1);
+  background-color: rgba(193, 18, 31, 0.1);
   border-radius: 8px;
+  font-family: 'Saira', sans-serif;
 }
 
-/* Percentual por Disciplina */
-.percentual-container {
-  background-color: #2a2a2a;
-  border: 1px solid #333;
+/* Filtros */
+.filtros-container {
+  background: linear-gradient(135deg, #242424 0%, #1b1b1b 100%);
+  border: 1px solid #333333;
   border-radius: 16px;
-  padding: 2rem;
-}
-
-.disciplina-selector {
+  padding: 1.5rem;
   margin-bottom: 2rem;
-  text-align: center;
 }
 
-.disciplina-selector label {
-  display: block;
-  color: #f2f2f2;
-  margin-bottom: 1rem;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.disciplina-selector select {
-  width: 100%;
-  max-width: 400px;
-  padding: 1rem;
+.filtro-select {
   background-color: #1b1b1b;
-  border: 2px solid #333;
+  border: 1px solid #333333;
   border-radius: 8px;
+  padding: 0.75rem 1rem;
   color: #f2f2f2;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+  font-family: 'Aptos', sans-serif;
+  transition: all 0.3s ease;
 }
 
-.disciplina-selector select:focus {
+.filtro-select:focus {
   outline: none;
   border-color: #8b0000;
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
 }
 
-/* Tabela de Percentuais */
-.percentual-table {
-  background-color: #1b1b1b;
-  border: 1px solid #333;
-  border-radius: 12px;
-  overflow: hidden;
+.filtro-button {
+  background: linear-gradient(45deg, #8b0000, #c1121f);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-family: 'Aptos', sans-serif;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.percentual-table table {
+.filtro-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+}
+
+.filtro-button.active {
+  background: linear-gradient(45deg, #c1121f, #dc2626);
+}
+
+/* Botões de Ação */
+.action-button {
+  background: linear-gradient(45deg, #c1121f, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-family: 'Aptos', sans-serif;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(193, 18, 31, 0.3);
+}
+
+/* Progress Bars */
+.progress-bar {
   width: 100%;
-  border-collapse: collapse;
+  height: 8px;
+  background-color: #333333;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
 }
 
-.percentual-table th {
-  background-color: #2a2a2a;
-  color: #f2f2f2;
-  padding: 1.5rem 1rem;
-  text-align: left;
-  font-weight: 600;
-  font-size: 1rem;
-  border-bottom: 2px solid #333;
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b0000, #c1121f);
+  border-radius: 4px;
+  transition: width 0.5s ease;
 }
 
-.percentual-table td {
-  padding: 1.5rem 1rem;
-  color: #cccccc;
-  border-bottom: 1px solid #333;
-  font-size: 0.95rem;
+.progress-fill.success {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
 }
 
-.percentual-table tr:hover {
-  background-color: #2a2a2a;
+.progress-fill.warning {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
 }
 
-.percentual-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-align: center;
-  min-width: 80px;
-  display: inline-block;
+.progress-fill.danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
-.percentual-badge.excelente {
-  background-color: #4CAF50;
-  color: white;
+/* Tooltips personalizados */
+.custom-tooltip {
+  background: linear-gradient(135deg, #1b1b1b 0%, #242424 100%);
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  font-family: 'Aptos', sans-serif;
 }
 
-.percentual-badge.bom {
-  background-color: #8BC34A;
-  color: white;
+/* Animações */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.percentual-badge.regular {
-  background-color: #FF9800;
-  color: white;
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.percentual-badge.ruim {
-  background-color: #f44336;
-  color: white;
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-/* Mensagens de Estado Vazio */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+/* Estados vazios */
 .empty-state {
   text-align: center;
   padding: 3rem 2rem;
@@ -317,6 +444,7 @@
   color: #cccccc;
   font-size: 1.5rem;
   margin-bottom: 1rem;
+  font-family: 'Saira', sans-serif;
 }
 
 .empty-state p {
@@ -324,6 +452,7 @@
   line-height: 1.6;
   max-width: 500px;
   margin: 0 auto;
+  font-family: 'Aptos', sans-serif;
 }
 
 /* Loading States */
@@ -360,12 +489,14 @@
     grid-template-columns: 1fr;
   }
   
-  .percentual-table {
-    overflow-x: auto;
+  .filtros-container {
+    padding: 1rem;
   }
   
-  .percentual-table table {
-    min-width: 600px;
+  .filtro-select,
+  .filtro-button {
+    width: 100%;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -387,28 +518,52 @@
     gap: 0.5rem;
     align-items: flex-start;
   }
-}
-
-/* Animações */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .chart-container {
+    padding: 1rem;
   }
 }
 
-.estatistica-card,
-.dificuldade-item {
-  animation: fadeInUp 0.6s ease-out;
+/* Melhorias para gráficos */
+.recharts-wrapper {
+  font-family: 'Aptos', sans-serif;
 }
 
-.estatistica-card:nth-child(1) { animation-delay: 0.1s; }
-.estatistica-card:nth-child(2) { animation-delay: 0.2s; }
-.estatistica-card:nth-child(3) { animation-delay: 0.3s; }
-.estatistica-card:nth-child(4) { animation-delay: 0.4s; }
-.estatistica-card:nth-child(5) { animation-delay: 0.5s; }
-.estatistica-card:nth-child(6) { animation-delay: 0.6s; }
+.recharts-tooltip-wrapper {
+  font-family: 'Aptos', sans-serif;
+}
+
+.recharts-legend-wrapper {
+  font-family: 'Aptos', sans-serif;
+}
+
+/* Hover effects para cards */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(139, 0, 0, 0.2);
+}
+
+/* Gradientes personalizados */
+.gradient-primary {
+  background: linear-gradient(135deg, #8b0000 0%, #c1121f 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, #1b1b1b 0%, #242424 100%);
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.gradient-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.gradient-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}

@@ -39,7 +39,32 @@ export const LogoProvider: React.FC<LogoProviderProps> = ({ children }) => {
         .eq('ativo', true)
         .order('tipo');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao carregar configurações de logo:', error);
+        // Fallback para URLs padrão do Supabase Storage
+        const fallbackConfigs = [
+          {
+            id: 1,
+            tipo: 'logo',
+            url: 'https://cfwyuomeaudpnmjosetq.supabase.co/storage/v1/object/public/uploads/logos/ATAQUE.png',
+            nome_arquivo: 'ATAQUE.png',
+            ativo: true
+          },
+          {
+            id: 2,
+            tipo: 'favicon',
+            url: 'https://cfwyuomeaudpnmjosetq.supabase.co/storage/v1/object/public/uploads/logos/favicon-1755150122840.ico',
+            nome_arquivo: 'favicon-1755150122840.ico',
+            ativo: true
+          }
+        ];
+        setLogoConfigs(fallbackConfigs);
+        
+        // Aplicar favicon fallback
+        updateFavicon(fallbackConfigs[1].url);
+        return;
+      }
+
       setLogoConfigs(data || []);
 
       // Aplicar favicon se existir
